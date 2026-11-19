@@ -1,0 +1,12 @@
+# Angular
+node_modules/
+.angular/
+dist/
+.env
+
+# Python / Flask
+__pycache__/
+*.pyc
+venv/
+.venv/
+env/

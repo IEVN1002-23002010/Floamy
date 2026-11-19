@@ -1,0 +1,144 @@
+@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap");
+
+:root {
+  --navy: #011640;
+  --blue: #6da0bf;
+  --ice: #aac8e0;
+  --pale: #dff0f7;
+  --cream: #f7f3e9;
+  --white: #fff;
+  --ink: #0b234a;
+  --muted: #6c7b91;
+  --line: #dce5eb;
+  --green: #3b8d71;
+  --red: #c45d57;
+  --yellow: #e6b85c;
+  --shadow: 0 12px 35px rgba(1, 22, 64, 0.07);
+  font-family: "Poppins", sans-serif;
+  color: var(--navy);
+  background: var(--cream);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: var(--cream); }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3, .logo strong { font-family: "Baloo 2", sans-serif; }
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid rgba(109, 160, 191, 0.4);
+  outline-offset: 2px;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--blue);
+  text-transform: uppercase;
+}
+
+.logo { display: inline-flex; align-items: center; gap: 10px; }
+.logo img { height: 34px; width: auto; object-fit: contain; }
+.logo-light img { filter: brightness(0) invert(1); }
+
+.primary-btn {
+  background: var(--navy);
+  color: var(--white);
+  border: none;
+  padding: 11px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.15s, opacity 0.15s;
+}
+.primary-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+.primary-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.primary-btn.full { width: 100%; }
+
+.secondary-btn {
+  background: var(--white);
+  color: var(--navy);
+  border: 1px solid var(--line);
+  padding: 11px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chip {
+  background: var(--white);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.chip.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
+
+.qty { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; }
+.qty button {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  color: var(--navy);
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.stars { color: var(--yellow); letter-spacing: 2px; font-size: 13px; }
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--pale);
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.vanilla { background: linear-gradient(135deg, #fdf6e3, #f3e2b8); }
+.chocolate { background: linear-gradient(135deg, #6e473b, #3e251e); }
+.strawberry { background: linear-gradient(135deg, #fbd5df, #f29cb4); }
+.mango { background: linear-gradient(135deg, #ffe7a3, #f7b74d); }
+.lemon { background: linear-gradient(135deg, #e5f5c8, #b6db7c); }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(1, 22, 64, 0.45);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  padding: 16px;
+}
+.modal-card {
+  background: var(--white);
+  border-radius: 22px;
+  padding: 26px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--shadow);
+}
+.modal-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.modal-head button { background: none; border: none; font-size: 22px; color: var(--muted); }
+.modal-fields { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+.modal-fields label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 600; color: var(--ink); }
+.modal-fields input { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }

@@ -1,0 +1,9 @@
+@import "./_variables.css";
+@import "./_admin.css";
+@import "./_storefront.css";
+/*@import './styles.css';
+
+@import "tailwindcss";
+@import "flowbite/src/themes/default";
+@plugin "flowbite/plugin";
+@source "../node_modules/flowbite";*/
