@@ -70,7 +70,7 @@ import { ModalComponent } from '../../../shared/components/modal/modal.component
       </div>
     </div>
 
-    <app-modal *ngIf="modalOpen()" [title]="editingId ? 'Editar sabor' : 'Agregar sabor'" (close)="modalOpen.set(false)">
+    <app-modal *ngIf="modalOpen()" [title]="editingId ? 'Editar sabor' : 'Agregar sabor'" (close)="closeModal()">
       <form class="space-y-4" (ngSubmit)="save()">
         <div>
           <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">Nombre comercial</label>
@@ -104,13 +104,65 @@ import { ModalComponent } from '../../../shared/components/modal/modal.component
           </div>
         </div>
 
-        <div>
-          <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">URL de Imagen</label>
-          <input type="url" name="image" [(ngModel)]="form.image" placeholder="https://..."
-                 class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5" />
+        <!-- Selector doble: Subir archivo o Enlace URL -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-semibold text-[#0b234a]">Imagen del sabor</label>
+            <div class="inline-flex rounded-xl bg-white p-0.5 border border-slate-200">
+              <button type="button"
+                      (click)="switchImageMode('file')"
+                      [class]="imageMode() === 'file'
+                        ? 'px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-[#011640] text-white transition'
+                        : 'px-2.5 py-1 text-[11px] font-semibold rounded-lg text-slate-600 hover:text-[#011640] transition'">
+                Subir archivo
+              </button>
+              <button type="button"
+                      (click)="switchImageMode('url')"
+                      [class]="imageMode() === 'url'
+                        ? 'px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-[#011640] text-white transition'
+                        : 'px-2.5 py-1 text-[11px] font-semibold rounded-lg text-slate-600 hover:text-[#011640] transition'">
+                Enlace URL
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="imageMode() === 'file'">
+            <input type="file"
+                   accept="image/png,image/jpeg,image/webp,image/gif"
+                   (change)="onFileSelected($event)"
+                   class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#dff0f7] file:text-[#011640] hover:file:bg-[#aac8e0]/60 cursor-pointer" />
+            <p class="text-[11px] text-slate-400 mt-1">Formatos permitidos: JPG, PNG, WEBP o GIF.</p>
+          </div>
+
+          <div *ngIf="imageMode() === 'url'">
+            <input type="url"
+                   name="image"
+                   [(ngModel)]="form.image"
+                   (ngModelChange)="onUrlChanged($event)"
+                   placeholder="https://..."
+                   class="bg-white border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5" />
+          </div>
+
+          <!-- Vista previa -->
+          <div *ngIf="previewUrl()" class="flex items-center gap-3 pt-1">
+            <img [src]="previewUrl()!"
+                 alt="Vista previa"
+                 class="w-16 h-16 rounded-xl object-cover border border-slate-200 bg-white" />
+            <div class="flex-1 min-w-0">
+              <span class="block text-xs font-semibold text-[#011640] truncate">
+                {{ selectedFile ? selectedFile.name : 'Imagen vinculada' }}
+              </span>
+              <button type="button"
+                      (click)="clearImage()"
+                      class="text-[11px] font-semibold text-red-600 hover:underline mt-0.5">
+                Quitar imagen
+              </button>
+            </div>
+          </div>
         </div>
+
         <div class="flex justify-end gap-2 pt-2">
-          <button type="button" (click)="modalOpen.set(false)" class="px-4 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100">
+          <button type="button" (click)="closeModal()" class="px-4 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100">
             Cancelar
           </button>
           <button type="submit" class="px-5 py-2.5 text-xs font-semibold text-white bg-[#011640] rounded-xl hover:bg-[#0b234a]">
@@ -128,6 +180,12 @@ export class ProductsComponent {
 
   modalOpen = signal(false);
   editingId: number | null = null;
+  imageMode = signal<'file' | 'url'>('file');
+  previewUrl = signal<string | null>(null);
+
+  selectedFile: File | null = null;
+  private objectUrlToRevoke: string | null = null;
+
   form: ProductItem = { name: '', flavor: '', tone: 'vanilla', stockCup: 15, stockLiter: 6, image: '' };
   formPresentations: ProductPresentationStock[] = [];
 
@@ -146,7 +204,11 @@ export class ProductsComponent {
   }
 
   openNew() {
+    this.revokeObjectUrl();
     this.editingId = null;
+    this.selectedFile = null;
+    this.imageMode.set('file');
+    this.previewUrl.set(null);
     this.form = { name: '', flavor: '', tone: 'vanilla', stockCup: 15, stockLiter: 6, image: '' };
     this.formPresentations = this.optionsService.presentations().map((pr) => ({
       presentationId: pr.id!,
@@ -158,18 +220,73 @@ export class ProductsComponent {
   }
 
   openEdit(p: ProductItem) {
+    this.revokeObjectUrl();
     this.editingId = p.id || null;
-    this.form = { ...p };
+    this.selectedFile = null;
+    const currentUrl = p.image || '';
+    this.imageMode.set(currentUrl ? 'url' : 'file');
+    this.previewUrl.set(currentUrl || null);
+    this.form = { ...p, image: currentUrl };
     this.formPresentations = (p.presentations || []).map((pr) => ({ ...pr }));
     this.modalOpen.set(true);
   }
 
+  switchImageMode(mode: 'file' | 'url') {
+    this.imageMode.set(mode);
+    if (mode === 'url') {
+      this.revokeObjectUrl();
+      this.selectedFile = null;
+      this.previewUrl.set((this.form.image || '').trim() || null);
+    }
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] || null;
+    this.revokeObjectUrl();
+    this.selectedFile = file;
+
+    if (file) {
+      const objUrl = URL.createObjectURL(file);
+      this.objectUrlToRevoke = objUrl;
+      this.previewUrl.set(objUrl);
+    } else {
+      this.previewUrl.set((this.form.image || '').trim() || null);
+    }
+  }
+
+  onUrlChanged(url: string) {
+    this.previewUrl.set(url.trim() || null);
+  }
+
+  clearImage() {
+    this.revokeObjectUrl();
+    this.selectedFile = null;
+    this.form.image = '';
+    this.previewUrl.set(null);
+  }
+
+  closeModal() {
+    this.revokeObjectUrl();
+    this.modalOpen.set(false);
+  }
+
   save() {
-    const payload = { ...this.form, presentations: this.formPresentations };
+    const payload = {
+      ...this.form,
+      image: (this.form.image || '').trim(),
+      imageFile: this.selectedFile,
+      presentations: this.formPresentations
+    };
+
     const obs = this.editingId
       ? this.productsService.updateProduct(this.editingId, payload)
       : this.productsService.createProduct(payload);
-    obs.subscribe(() => this.modalOpen.set(false));
+
+    obs.subscribe({
+      next: () => this.closeModal(),
+      error: (err) => alert(err?.error?.message || err?.error?.error || 'No se pudo guardar el sabor.')
+    });
   }
 
   remove(p: ProductItem) {
@@ -177,6 +294,13 @@ export class ProductsComponent {
       this.productsService.deleteProduct(p.id).subscribe({
         error: (err) => alert(err?.error?.message || 'No se pudo eliminar el producto.')
       });
+    }
+  }
+
+  private revokeObjectUrl() {
+    if (this.objectUrlToRevoke) {
+      URL.revokeObjectURL(this.objectUrlToRevoke);
+      this.objectUrlToRevoke = null;
     }
   }
 }

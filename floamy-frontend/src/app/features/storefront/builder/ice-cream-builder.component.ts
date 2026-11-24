@@ -15,19 +15,31 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <!-- Configurador por pasos -->
         <div class="lg:col-span-8 space-y-6">
-          <!-- Paso 1: Tamaño -->
+          <!-- Paso 1: Tamaño con imagen -->
           <div class="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
             <span class="eyebrow">PASO 1</span>
             <h3 class="text-xl font-bold text-[#011640] mt-0.5 mb-3">Elige el tamaño</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
               <button *ngFor="let pres of optionsService.presentations()"
                       type="button"
                       (click)="selectPresentation(pres)"
-                      [class]="selectedPres()?.id === pres.id
-                        ? 'p-4 text-left rounded-2xl border-2 border-[#011640] bg-[#dff0f7]/50 transition'
-                        : 'p-4 text-left rounded-2xl border border-slate-200 bg-white hover:border-[#6da0bf] transition'">
-                <strong class="block text-base text-[#011640]">{{ pres.nombre }}</strong>
-                <span class="text-xs font-semibold text-[#6da0bf]">{{ pres.precio | currencyMxn }}</span>
+                      [class]="activePres()?.id === pres.id
+                        ? 'group overflow-hidden text-left rounded-2xl border-2 border-[#011640] bg-[#dff0f7]/40 shadow-sm transition'
+                        : 'group overflow-hidden text-left rounded-2xl border border-slate-200 bg-white hover:border-[#6da0bf] transition'">
+                <div class="w-full h-28 bg-[#f7f3e9] overflow-hidden relative">
+                  <img *ngIf="pres.imagen_url"
+                       [src]="pres.imagen_url"
+                       [alt]="pres.nombre"
+                       class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                  <div *ngIf="!pres.imagen_url"
+                       class="w-full h-full flex items-center justify-center text-xs font-semibold text-[#6da0bf]">
+                    {{ pres.nombre }}
+                  </div>
+                </div>
+                <div class="p-3.5">
+                  <strong class="block text-base text-[#011640]">{{ pres.nombre }}</strong>
+                  <span class="text-xs font-semibold text-[#6da0bf]">{{ pres.precio | currencyMxn }}</span>
+                </div>
               </button>
             </div>
           </div>
@@ -41,7 +53,7 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
                       type="button"
                       [disabled]="getStockForFlavor(p) === 0"
                       (click)="selectFlavor(p)"
-                      [class]="selectedFlavor()?.id === p.id
+                      [class]="activeFlavor()?.id === p.id
                         ? 'p-3.5 text-left rounded-2xl border-2 border-[#011640] bg-[#dff0f7]/50 flex items-center gap-3 transition'
                         : 'p-3.5 text-left rounded-2xl border border-slate-200 bg-white hover:border-[#6da0bf] disabled:opacity-45 flex items-center gap-3 transition'">
                 <div class="scoop shrink-0 !w-12 !h-12" [class]="p.tone">

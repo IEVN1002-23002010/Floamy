@@ -4,6 +4,10 @@ import { catchError, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment.development';
 import { ProductItem } from '../models/product.model';
 
+export interface ProductPayload extends ProductItem {
+  imageFile?: File | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProductsService {
   private http = inject(HttpClient);
@@ -13,6 +17,27 @@ export class ProductsService {
 
   constructor() {
     this.loadProducts().subscribe();
+  }
+
+  private buildProductFormData(item: ProductPayload): FormData {
+    const fd = new FormData();
+    fd.append('name', item.name);
+    fd.append('flavor', item.flavor);
+    fd.append('tone', item.tone || 'vanilla');
+    fd.append('stockCup', String(item.stockCup ?? 10));
+    fd.append('stockLiter', String(item.stockLiter ?? 5));
+
+    if (item.presentations) {
+      fd.append('presentations', JSON.stringify(item.presentations));
+    }
+
+    if (item.imageFile) {
+      fd.append('image_file', item.imageFile);
+    } else {
+      fd.append('image', item.image || '');
+    }
+
+    return fd;
   }
 
   loadProducts() {
@@ -25,12 +50,14 @@ export class ProductsService {
     );
   }
 
-  createProduct(item: ProductItem) {
-    return this.http.post(`${this.baseUrl}/`, item).pipe(tap(() => this.loadProducts().subscribe()));
+  createProduct(item: ProductPayload) {
+    const body = this.buildProductFormData(item);
+    return this.http.post(`${this.baseUrl}/`, body).pipe(tap(() => this.loadProducts().subscribe()));
   }
 
-  updateProduct(id: number, item: ProductItem) {
-    return this.http.put(`${this.baseUrl}/${id}`, item).pipe(tap(() => this.loadProducts().subscribe()));
+  updateProduct(id: number, item: ProductPayload) {
+    const body = this.buildProductFormData(item);
+    return this.http.put(`${this.baseUrl}/${id}`, body).pipe(tap(() => this.loadProducts().subscribe()));
   }
 
   adjustStock(productId: number, delta: number) {

@@ -38,7 +38,8 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
         </div>
         <div class="hero-image">
           <div class="floe one"></div><div class="floe two"></div>
-          <img src="https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?auto=format&fit=crop&w=1000&q=85" alt="Cono de helado artesanal" />
+          
+          <img src="front.jpeg" alt="Cono de helado artesanal" />
           <span class="float-card"><span><strong>Listo en 15 min</strong><small>Recoge sin filas</small></span></span>
         </div>
       </section>

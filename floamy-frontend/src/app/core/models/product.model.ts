@@ -4,6 +4,7 @@ export interface PresentationOption {
   id?: number;
   nombre: string;
   precio: number;
+  imagen_url?: string | null;
 }
 
 export interface ToppingOption {

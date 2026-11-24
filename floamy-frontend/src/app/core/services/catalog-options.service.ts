@@ -4,6 +4,14 @@ import { tap } from 'rxjs';
 import { environment } from '../../../environments/environment.development';
 import { PresentationOption, ToppingOption } from '../models/product.model';
 
+export interface PresentationPayload {
+  nombre: string;
+  precio: number;
+  stockInicial?: number;
+  imagen_url?: string | null;
+  imagen_file?: File | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CatalogOptionsService {
   private http = inject(HttpClient);
@@ -18,20 +26,37 @@ export class CatalogOptionsService {
     this.loadToppings().subscribe();
   }
 
+  private buildPresentationFormData(payload: PresentationPayload): FormData {
+    const fd = new FormData();
+    fd.append('nombre', payload.nombre);
+    fd.append('precio', String(payload.precio));
+    if (payload.stockInicial !== undefined) {
+      fd.append('stockInicial', String(payload.stockInicial));
+    }
+    if (payload.imagen_file) {
+      fd.append('imagen_file', payload.imagen_file);
+    } else {
+      fd.append('imagen_url', payload.imagen_url || '');
+    }
+    return fd;
+  }
+
   loadPresentations() {
     return this.http.get<PresentationOption[]>(`${this.presUrl}/`).pipe(
       tap((list) => this.presentations.set(list))
     );
   }
 
-  createPresentation(payload: { nombre: string; precio: number; stockInicial?: number }) {
-    return this.http.post(`${this.presUrl}/`, payload).pipe(
+  createPresentation(payload: PresentationPayload) {
+    const body = this.buildPresentationFormData(payload);
+    return this.http.post(`${this.presUrl}/`, body).pipe(
       tap(() => this.loadPresentations().subscribe())
     );
   }
 
-  updatePresentation(id: number, payload: { nombre: string; precio: number }) {
-    return this.http.put(`${this.presUrl}/${id}`, payload).pipe(
+  updatePresentation(id: number, payload: PresentationPayload) {
+    const body = this.buildPresentationFormData(payload);
+    return this.http.put(`${this.presUrl}/${id}`, body).pipe(
       tap(() => this.loadPresentations().subscribe())
     );
   }
