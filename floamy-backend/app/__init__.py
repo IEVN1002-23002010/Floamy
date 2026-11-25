@@ -16,6 +16,7 @@ from app.routes.suppliers_routes import suppliers_bp
 from app.routes.presentations_routes import presentations_bp
 from app.routes.toppings_routes import toppings_bp
 from app.routes.cash_register_routes import cash_register_bp
+from app.routes.purchase_orders_routes import purchase_orders_bp
 
 def create_app():
     app = Flask(__name__)
@@ -37,5 +38,6 @@ def create_app():
     app.register_blueprint(presentations_bp, url_prefix="/api/presentations")
     app.register_blueprint(toppings_bp, url_prefix="/api/toppings")
     app.register_blueprint(cash_register_bp, url_prefix="/api/cash-register")
+    app.register_blueprint(purchase_orders_bp, url_prefix="/api/purchase-orders")
 
     return app

@@ -17,7 +17,7 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
     <app-page-title
       eyebrow="EXTRAS Y COMPLEMENTOS"
       title="Toppings"
-      [subtitle]="optionsService.toppings().length + ' toppings registrados con proveedor'"
+      [subtitle]="optionsService.toppings().length + ' toppings sincronizados con inventario'"
       button="+ Nuevo topping"
       (action)="openNew()" />
 
@@ -38,25 +38,21 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
               Aún no hay toppings registrados. Agrega chispas, galleta, fruta o jarabes.
             </td>
           </tr>
-          <tr *ngFor="let t of optionsService.toppings()" class="bg-white hover:bg-slate-50/80 transition">
-            <td class="px-6 py-4 font-bold text-[#011640]">{{ t.nombre }}</td>
+          <tr *ngFor="let t of asAnyList(optionsService.toppings())" class="bg-white hover:bg-slate-50/80 transition">
+            <td class="px-6 py-4">
+              <div class="font-bold text-[#011640]">{{ t.nombre }}</div>
+              <small *ngIf="t.ingrediente_nombre" class="block text-[11px] text-slate-400 mt-0.5">
+                Insumo: {{ t.ingrediente_nombre }} ({{ t.cantidad_por_porcion }} {{ t.ingrediente_unidad }}/porción)
+              </small>
+            </td>
             <td class="px-6 py-4 text-xs">{{ t.proveedor_nombre || 'Sin proveedor' }}</td>
             <td class="px-6 py-4 font-semibold text-[#011640]">+{{ t.precio | currencyMxn }}</td>
             <td class="px-6 py-4">
-              <div class="inline-flex items-center gap-2">
-                <button type="button"
-                        [disabled]="t.stock === 0"
-                        (click)="adjustStock(t, -1)"
-                        class="w-7 h-7 rounded-lg border border-slate-200 bg-[#f7f3e9] text-[#011640] font-bold hover:bg-slate-200 disabled:opacity-40 transition">−</button>
-                <span [class]="t.stock <= 5
-                  ? 'bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded-full'
-                  : 'bg-[#dff0f7] text-[#011640] text-xs font-semibold px-2.5 py-0.5 rounded-full'">
-                  {{ t.stock }} porciones
-                </span>
-                <button type="button"
-                        (click)="adjustStock(t, 1)"
-                        class="w-7 h-7 rounded-lg border border-slate-200 bg-[#f7f3e9] text-[#011640] font-bold hover:bg-slate-200 transition">+</button>
-              </div>
+              <span [class]="t.stock <= 5
+                ? 'bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full'
+                : 'bg-[#dff0f7] text-[#011640] text-xs font-semibold px-3 py-1 rounded-full'">
+                {{ t.stock }} porciones
+              </span>
             </td>
             <td class="px-6 py-4">
               <div class="flex items-center justify-end gap-2">
@@ -84,18 +80,47 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
           <input required name="nombre" [(ngModel)]="form.nombre" placeholder="Ej. Galleta Oreo triturada"
                  class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5" />
         </div>
+
+        <div>
+          <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">Insumo vinculado en inventario</label>
+          <select name="ingrediente_id"
+                  [(ngModel)]="form.ingrediente_id"
+                  (ngModelChange)="onIngredientChange($event)"
+                  class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5">
+            <option [ngValue]="null">Sin vincular (stock manual)</option>
+            <option *ngFor="let ing of ingredients()" [ngValue]="ing.id">
+              {{ ing.name || ing.nombre }} ({{ ing.current ?? ing.stock_actual ?? ing.stock ?? 0 }} {{ ing.unit || ing.unidad || '' }} disp.)
+            </option>
+          </select>
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">Precio extra (MXN)</label>
             <input required type="number" step="0.5" min="0" name="precio" [(ngModel)]="form.precio"
                    class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5" />
           </div>
-          <div>
-            <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">Stock (porciones)</label>
-            <input required type="number" min="0" name="stock" [(ngModel)]="form.stock"
+
+          <div *ngIf="form.ingrediente_id; else manualStockTpl">
+            <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">
+              Consumo por porción ({{ selectedIngredientUnit() }})
+            </label>
+            <input required type="number" step="0.005" min="0.001" name="cantidad_por_porcion" [(ngModel)]="form.cantidad_por_porcion"
                    class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5" />
+            <small class="block text-[11px] text-[#6da0bf] font-semibold mt-1">
+              ≈ {{ previewPortions() }} porciones disponibles
+            </small>
           </div>
+
+          <ng-template #manualStockTpl>
+            <div>
+              <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">Stock manual (porciones)</label>
+              <input required type="number" min="0" name="stock" [(ngModel)]="form.stock"
+                     class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5" />
+            </div>
+          </ng-template>
         </div>
+
         <div>
           <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">Proveedor</label>
           <select name="proveedor_id" [(ngModel)]="form.proveedor_id"
@@ -104,6 +129,7 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
             <option *ngFor="let prov of suppliers()" [ngValue]="prov.id">{{ prov.nombre }}</option>
           </select>
         </div>
+
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" (click)="modalOpen.set(false)" class="px-4 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100">
             Cancelar
@@ -121,28 +147,80 @@ export class ToppingsComponent implements OnInit {
   private http = inject(HttpClient);
 
   suppliers = signal<any[]>([]);
+  ingredients = signal<any[]>([]);
   modalOpen = signal(false);
   editingId = signal<number | null>(null);
-  form: Partial<ToppingOption> = { nombre: '', precio: 10, stock: 25, proveedor_id: null };
+  form: any = {
+    nombre: '',
+    precio: 10,
+    stock: 25,
+    proveedor_id: null,
+    ingrediente_id: null,
+    cantidad_por_porcion: 0.04,
+  };
 
   ngOnInit() {
     this.http.get<any[]>(`${environment.apiUrl}/suppliers/`).subscribe((list) => this.suppliers.set(list));
+    this.loadIngredients();
+    this.optionsService.loadToppings().subscribe();
+  }
+
+  loadIngredients() {
+    this.http.get<any[]>(`${environment.apiUrl}/inventory/`).subscribe((list) => this.ingredients.set(list));
+  }
+
+  asAnyList(list: ToppingOption[]): any[] {
+    return list as any[];
   }
 
   openNew() {
+    this.loadIngredients();
     this.editingId.set(null);
-    this.form = { nombre: '', precio: 10, stock: 25, proveedor_id: this.suppliers()[0]?.id ?? null };
+    this.form = {
+      nombre: '',
+      precio: 10,
+      stock: 25,
+      proveedor_id: null,
+      ingrediente_id: null,
+      cantidad_por_porcion: 0.04,
+    };
     this.modalOpen.set(true);
   }
 
-  openEdit(t: ToppingOption) {
+  openEdit(t: any) {
+    this.loadIngredients();
     this.editingId.set(t.id || null);
-    this.form = { ...t };
+    this.form = {
+      ...t,
+      proveedor_id: t.proveedor_id ?? null,
+      ingrediente_id: t.ingrediente_id ?? null,
+      cantidad_por_porcion: t.cantidad_por_porcion ?? 0.04,
+    };
     this.modalOpen.set(true);
   }
 
-  adjustStock(t: ToppingOption, delta: number) {
-    if (t.id) this.optionsService.adjustToppingStock(t.id, delta).subscribe();
+  onIngredientChange(ingId: number | null) {
+    if (!ingId) {
+      this.form.proveedor_id = null;
+      return;
+    }
+    const ing = this.ingredients().find((x) => Number(x.id) === Number(ingId));
+    if (ing) {
+      this.form.proveedor_id = ing.proveedor_id ?? ing.proveedorId ?? null;
+    }
+  }
+
+  selectedIngredientUnit(): string {
+    const ing = this.ingredients().find((x) => Number(x.id) === Number(this.form.ingrediente_id));
+    return ing?.unit || ing?.unidad || 'kg';
+  }
+
+  previewPortions(): number {
+    const ing = this.ingredients().find((x) => Number(x.id) === Number(this.form.ingrediente_id));
+    const stock = Number(ing?.current ?? ing?.stock_actual ?? ing?.stock ?? 0);
+    const portion = Number(this.form.cantidad_por_porcion || 0);
+    if (!ing || portion <= 0) return 0;
+    return Math.max(0, Math.floor((stock + 1e-9) / portion));
   }
 
   save() {
@@ -151,7 +229,10 @@ export class ToppingsComponent implements OnInit {
       ? this.optionsService.updateTopping(id, this.form)
       : this.optionsService.createTopping(this.form);
 
-    req$.subscribe(() => this.modalOpen.set(false));
+    req$.subscribe(() => {
+      this.modalOpen.set(false);
+      this.optionsService.loadToppings().subscribe();
+    });
   }
 
   remove(t: ToppingOption) {

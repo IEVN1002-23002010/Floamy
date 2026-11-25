@@ -31,25 +31,62 @@ def _save_uploaded_image(file_storage):
     return f"{request.host_url.rstrip('/')}{relative_url}"
 
 
+def _get_columns(cursor, table_name):
+    try:
+        cursor.execute(f"SHOW COLUMNS FROM {table_name}")
+        return {row["Field"] for row in cursor.fetchall()}
+    except Exception:
+        return set()
+
+
 def _parse_presentation_payload():
     if request.content_type and "multipart/form-data" in request.content_type:
         nombre = (request.form.get("nombre") or "").strip()
         precio = float(request.form.get("precio") or 0)
         initial_stock = int(request.form.get("stockInicial") or 10)
+        litros_consumidos = float(
+            request.form.get("litros_consumidos")
+            or request.form.get("litrosConsumidos")
+            or 0.25
+        )
+        raw_desechable = (
+            request.form.get("ingrediente_desechable_id")
+            or request.form.get("ingredienteDesechableId")
+        )
+        ingrediente_desechable_id = int(raw_desechable) if raw_desechable else None
         imagen_url = (request.form.get("imagen_url") or "").strip() or None
 
-        uploaded_file = request.files.get("imagen_file")
+        uploaded_file = request.files.get("imagen_file") or request.files.get("imageFile")
         if uploaded_file and uploaded_file.filename:
             imagen_url = _save_uploaded_image(uploaded_file)
 
-        return nombre, precio, initial_stock, imagen_url
+        return {
+            "nombre": nombre,
+            "precio": precio,
+            "initial_stock": initial_stock,
+            "litros_consumidos": litros_consumidos,
+            "ingrediente_desechable_id": ingrediente_desechable_id,
+            "imagen_url": imagen_url,
+        }
 
     data = request.get_json(silent=True) or {}
-    nombre = (data.get("nombre") or "").strip()
-    precio = float(data.get("precio") or 0)
-    initial_stock = int(data.get("stockInicial") or 10)
-    imagen_url = (data.get("imagen_url") or "").strip() or None
-    return nombre, precio, initial_stock, imagen_url
+    raw_desechable = (
+        data.get("ingrediente_desechable_id")
+        if data.get("ingrediente_desechable_id") is not None
+        else data.get("ingredienteDesechableId")
+    )
+    return {
+        "nombre": (data.get("nombre") or "").strip(),
+        "precio": float(data.get("precio") or 0),
+        "initial_stock": int(data.get("stockInicial") or 10),
+        "litros_consumidos": float(
+            data.get("litros_consumidos")
+            or data.get("litrosConsumidos")
+            or 0.25
+        ),
+        "ingrediente_desechable_id": int(raw_desechable) if raw_desechable else None,
+        "imagen_url": (data.get("imagen_url") or "").strip() or None,
+    }
 
 
 @presentations_bp.get("/uploads/<path:filename>")
@@ -61,40 +98,71 @@ def serve_upload(filename):
 def list_presentations():
     conn = get_db_connection()
     with conn.cursor() as cursor:
-        cursor.execute(
-            "SELECT id, nombre, precio, imagen_url FROM presentaciones ORDER BY precio ASC, id ASC"
-        )
+        cursor.execute("SELECT * FROM presentaciones ORDER BY precio ASC, id ASC")
         rows = cursor.fetchall()
         for r in rows:
-            r["precio"] = float(r["precio"] or 0)
+            r["precio"] = float(r.get("precio") or 0)
+            if "litros_consumidos" in r:
+                r["litros_consumidos"] = float(r["litros_consumidos"] or 0.25)
+                r["litrosConsumidos"] = r["litros_consumidos"]
+            if "ingrediente_desechable_id" in r:
+                r["ingredienteDesechableId"] = r["ingrediente_desechable_id"]
     return jsonify(rows)
 
 
 @presentations_bp.post("/")
 def create_presentation():
     try:
-        nombre, precio, initial_stock, imagen_url = _parse_presentation_payload()
+        payload = _parse_presentation_payload()
     except ValueError as err:
         return jsonify({"error": str(err)}), 400
 
-    if not nombre:
+    if not payload["nombre"]:
         return jsonify({"error": "El nombre del tamaño es obligatorio"}), 400
 
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
+            pres_cols = _get_columns(cursor, "presentaciones")
+            hel_cols = _get_columns(cursor, "helados")
+
+            row_data = {
+                "nombre": payload["nombre"],
+                "precio": payload["precio"],
+                "imagen_url": payload["imagen_url"],
+            }
+            if "litros_consumidos" in pres_cols:
+                row_data["litros_consumidos"] = payload["litros_consumidos"]
+            if "ingrediente_desechable_id" in pres_cols:
+                row_data["ingrediente_desechable_id"] = payload["ingrediente_desechable_id"]
+
+            cols_sql = ", ".join(row_data.keys())
+            ph_sql = ", ".join(["%s"] * len(row_data))
             cursor.execute(
-                "INSERT INTO presentaciones (nombre, precio, imagen_url) VALUES (%s, %s, %s)",
-                (nombre, precio, imagen_url),
+                f"INSERT INTO presentaciones ({cols_sql}) VALUES ({ph_sql})",
+                tuple(row_data.values()),
             )
             pres_id = cursor.lastrowid
 
-            cursor.execute("SELECT id FROM helados")
-            for h in cursor.fetchall():
-                cursor.execute(
-                    "INSERT INTO productos (helado_id, presentacion_id, stock, activo) VALUES (%s, %s, %s, 1)",
-                    (h["id"], pres_id, initial_stock),
-                )
+            if "stock_litros" in hel_cols:
+                cursor.execute("SELECT id, COALESCE(stock_litros, 0) AS stock_litros FROM helados")
+                for h in cursor.fetchall():
+                    st = (
+                        int(float(h["stock_litros"]) // payload["litros_consumidos"])
+                        if payload["litros_consumidos"] > 0
+                        else 0
+                    )
+                    cursor.execute(
+                        "INSERT INTO productos (helado_id, presentacion_id, stock, activo) VALUES (%s, %s, %s, 1)",
+                        (h["id"], pres_id, st),
+                    )
+            else:
+                cursor.execute("SELECT id FROM helados")
+                for h in cursor.fetchall():
+                    cursor.execute(
+                        "INSERT INTO productos (helado_id, presentacion_id, stock, activo) VALUES (%s, %s, %s, 1)",
+                        (h["id"], pres_id, payload["initial_stock"]),
+                    )
         conn.commit()
     except Exception as exc:
         try:
@@ -109,19 +177,31 @@ def create_presentation():
 @presentations_bp.put("/<int:pres_id>")
 def update_presentation(pres_id):
     try:
-        nombre, precio, _, imagen_url = _parse_presentation_payload()
+        payload = _parse_presentation_payload()
     except ValueError as err:
         return jsonify({"error": str(err)}), 400
 
-    if not nombre:
+    if not payload["nombre"]:
         return jsonify({"error": "El nombre del tamaño es obligatorio"}), 400
 
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
+            pres_cols = _get_columns(cursor, "presentaciones")
+            updates = ["nombre = %s", "precio = %s", "imagen_url = %s"]
+            params = [payload["nombre"], payload["precio"], payload["imagen_url"]]
+
+            if "litros_consumidos" in pres_cols:
+                updates.append("litros_consumidos = %s")
+                params.append(payload["litros_consumidos"])
+            if "ingrediente_desechable_id" in pres_cols:
+                updates.append("ingrediente_desechable_id = %s")
+                params.append(payload["ingrediente_desechable_id"])
+
+            params.append(pres_id)
             cursor.execute(
-                "UPDATE presentaciones SET nombre = %s, precio = %s, imagen_url = %s WHERE id = %s",
-                (nombre, precio, imagen_url, pres_id),
+                f"UPDATE presentaciones SET {', '.join(updates)} WHERE id = %s",
+                tuple(params),
             )
         conn.commit()
     except Exception as exc:

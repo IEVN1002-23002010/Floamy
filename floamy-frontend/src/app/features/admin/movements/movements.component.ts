@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
 import { InventoryService } from '../../../core/services/inventory.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { IngredientItem, MovementItem } from '../../../core/models/inventory.model';
+import { IngredientItem } from '../../../core/models/inventory.model';
 import { PageTitleComponent } from '../../../shared/components/page-title/page-title.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 
@@ -68,6 +68,10 @@ import { ModalComponent } from '../../../shared/components/modal/modal.component
 
     <app-modal *ngIf="adding()" [title]="editingId() ? 'Editar movimiento' : 'Registrar movimiento'" (close)="adding.set(false)">
       <form class="space-y-4" (ngSubmit)="save()">
+        <div *ngIf="saveError()" role="alert" class="p-3 text-xs font-semibold text-red-800 rounded-xl bg-red-50 border border-red-200">
+          {{ saveError() }}
+        </div>
+
         <div>
           <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">Ingrediente</label>
           <select name="ing" [(ngModel)]="form.ingredienteId" required
@@ -93,8 +97,8 @@ import { ModalComponent } from '../../../shared/components/modal/modal.component
           <button type="button" (click)="adding.set(false)" class="px-4 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100">
             Cancelar
           </button>
-          <button type="submit" class="px-5 py-2.5 text-xs font-semibold text-white bg-[#011640] rounded-xl hover:bg-[#0b234a] focus:ring-4 focus:ring-[#6da0bf]/40">
-            {{ editingId() ? 'Actualizar ✓' : 'Registrar ✓' }}
+          <button type="submit" [disabled]="saving()" class="px-5 py-2.5 text-xs font-semibold text-white bg-[#011640] rounded-xl hover:bg-[#0b234a] focus:ring-4 focus:ring-[#6da0bf]/40 disabled:opacity-50">
+            {{ saving() ? 'Guardando...' : (editingId() ? 'Actualizar ✓' : 'Registrar ✓') }}
           </button>
         </div>
       </form>
@@ -108,6 +112,8 @@ export class MovementsComponent implements OnInit {
   movements = signal<any[]>([]);
   ingredients = signal<IngredientItem[]>([]);
   adding = signal(false);
+  saving = signal(false);
+  saveError = signal('');
   editingId = signal<number | null>(null);
   form = { ingredienteId: 1, tipo: 'Entrada', cantidad: 1 };
 
@@ -124,6 +130,7 @@ export class MovementsComponent implements OnInit {
   }
 
   openCreate() {
+    this.saveError.set('');
     this.editingId.set(null);
     this.form = {
       ingredienteId: this.ingredients()[0]?.id || 1,
@@ -134,11 +141,12 @@ export class MovementsComponent implements OnInit {
   }
 
   openEdit(m: any) {
+    this.saveError.set('');
     this.editingId.set(m.id || null);
     const matchedIng = this.ingredients().find(
       (i) => i.name.trim().toLowerCase() === String(m.ingredient || '').trim().toLowerCase()
     );
-    const ingId = m.ingredienteId ?? m.ingrediente_id ?? matchedIng?.id ?? this.ingredients()[0]?.id ?? 1;
+    const ingId = m.ingrediente_id ?? m.ingredienteId ?? matchedIng?.id ?? this.ingredients()[0]?.id ?? 1;
     const rawCant = m.cantidad !== undefined ? Number(m.cantidad) : parseFloat(String(m.amount || '1'));
 
     this.form = {
@@ -150,16 +158,25 @@ export class MovementsComponent implements OnInit {
   }
 
   save() {
+    this.saveError.set('');
+    this.saving.set(true);
     const payload = { ...this.form, usuarioId: this.auth.currentUser()?.id };
     const id = this.editingId();
     const req$ = id
       ? this.invService.updateMovement(id, payload)
       : this.invService.registerMovement(payload);
 
-    req$.subscribe(() => {
-      this.adding.set(false);
-      this.editingId.set(null);
-      this.load();
+    req$.subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.adding.set(false);
+        this.editingId.set(null);
+        this.load();
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.saveError.set(err?.error?.error || `Error ${err?.status || ''} al guardar el movimiento.`);
+      }
     });
   }
 

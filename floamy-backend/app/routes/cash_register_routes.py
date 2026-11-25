@@ -98,6 +98,34 @@ def calculate_day_totals(cursor, target_date: date) -> dict:
         else:
             efectivo += total
 
+    egresos_proveedores = 0.0
+    egresos_efectivo = 0.0
+    try:
+        cursor.execute(
+            """
+            SELECT total, metodo_pago
+            FROM ordenes_compra
+            WHERE estado = 'Pagada' AND DATE(COALESCE(fecha_pago, fecha_orden)) = %s
+            """,
+            (target_date.isoformat(),),
+        )
+        for oc in cursor.fetchall():
+            monto = float(oc.get("total") or 0)
+            egresos_proveedores += monto
+            if "efect" in str(oc.get("metodo_pago") or "efectivo").lower():
+                egresos_efectivo += monto
+    except Exception:
+        pass
+
+    cursor.execute("SELECT COALESCE(SUM(total), 0) AS ingresos FROM pedidos")
+    ingresos_acum = float((cursor.fetchone() or {}).get("ingresos") or 0)
+    egresos_acum = 0.0
+    try:
+        cursor.execute("SELECT COALESCE(SUM(total), 0) AS pagado FROM ordenes_compra WHERE estado = 'Pagada'")
+        egresos_acum = float((cursor.fetchone() or {}).get("pagado") or 0)
+    except Exception:
+        pass
+
     total_ventas = round(efectivo + tarjeta + transferencia, 2)
     return {
         "fecha": target_date.isoformat(),
@@ -106,6 +134,9 @@ def calculate_day_totals(cursor, target_date: date) -> dict:
         "ventas_tarjeta": round(tarjeta, 2),
         "ventas_transferencia": round(transferencia, 2),
         "total_ventas": total_ventas,
+        "egresos_proveedores": round(egresos_proveedores, 2),
+        "egresos_efectivo": round(egresos_efectivo, 2),
+        "saldo_disponible": round(ingresos_acum - egresos_acum, 2),
     }
 
 
@@ -189,7 +220,10 @@ def create_closure():
                 target_date = get_db_today(cursor)
 
             totals = calculate_day_totals(cursor, target_date)
-            efectivo_esperado = round(fondo_inicial + totals["ventas_efectivo"], 2)
+            efectivo_esperado = round(
+                fondo_inicial + totals["ventas_efectivo"] - totals["egresos_efectivo"],
+                2,
+            )
             diferencia = round(efectivo_contado - efectivo_esperado, 2)
 
             cursor.execute(

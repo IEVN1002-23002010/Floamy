@@ -1,3 +1,4 @@
+import math
 import random
 import re
 from datetime import datetime, date
@@ -22,6 +23,110 @@ MESES_LARGOS = (
     "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 )
+
+
+def _get_columns(cursor, table_name):
+    try:
+        cursor.execute(f"SHOW COLUMNS FROM {table_name}")
+        return {row["Field"] for row in cursor.fetchall()}
+    except Exception:
+        return set()
+
+
+def _infer_liters(pres_row, fallback_size=""):
+    if pres_row:
+        raw = pres_row.get("litros_consumidos")
+        if raw is not None and float(raw) > 0:
+            return float(raw)
+        fallback_size = pres_row.get("nombre") or fallback_size
+    s = (fallback_size or "").lower()
+    if "medio" in s or "1/2" in s or "500" in s:
+        return 0.5
+    if "litro" in s or "1l" in s or "1000" in s:
+        return 1.0
+    if "12" in s:
+        return 0.35
+    if "cono" in s:
+        return 0.15
+    return 0.24
+
+
+def _get_presentation_disposable_ids(pres_row):
+    if not pres_row:
+        return []
+    ids = []
+    for key in ("ingrediente_desechable_id", "empaque_ingrediente_id", "cuchara_ingrediente_id"):
+        val = pres_row.get(key)
+        if val and int(val) not in ids:
+            ids.append(int(val))
+    return ids
+
+
+def _sync_all_product_stocks(cursor, ing_stock_col: str = "stock_actual"):
+    cursor.execute("SELECT id, COALESCE(stock_litros, 0) AS stock_litros FROM helados")
+    helados = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM presentaciones")
+    presentaciones = cursor.fetchall()
+
+    ing_stocks = {}
+    try:
+        cursor.execute(f"SELECT id, {ing_stock_col} AS stock_actual FROM ingredientes")
+        for row in cursor.fetchall():
+            ing_stocks[int(row["id"])] = float(row["stock_actual"] or 0)
+    except Exception:
+        pass
+
+    for h in helados:
+        hid = int(h["id"])
+        stock_litros = float(h["stock_litros"] or 0)
+        for pres in presentaciones:
+            pres_id = int(pres["id"])
+            litros_unit = _infer_liters(pres)
+            if litros_unit <= 0 or stock_litros <= 0:
+                unidades = 0
+            else:
+                unidades = int((stock_litros + 1e-6) // litros_unit)
+                for des_id in _get_presentation_disposable_ids(pres):
+                    if des_id in ing_stocks:
+                        unidades = min(unidades, max(0, int(ing_stocks[des_id])))
+
+            cursor.execute(
+                "UPDATE productos SET stock = %s WHERE helado_id = %s AND presentacion_id = %s",
+                (max(0, unidades), hid, pres_id),
+            )
+
+
+def _resolve_item_toppings(cursor, item: dict):
+    resolved = []
+    seen_ids = set()
+
+    for tid in item.get("toppingIds") or []:
+        try:
+            tid_int = int(tid)
+            if tid_int in seen_ids:
+                continue
+            cursor.execute("SELECT * FROM toppings WHERE id = %s LIMIT 1", (tid_int,))
+            row = cursor.fetchone()
+            if row:
+                seen_ids.add(row["id"])
+                resolved.append(row)
+        except Exception:
+            pass
+
+    if not resolved and item.get("toppings"):
+        raw_names = [n.strip() for n in str(item["toppings"]).split(",") if n.strip()]
+        for name in raw_names:
+            try:
+                cursor.execute("SELECT * FROM toppings WHERE LOWER(nombre) = %s LIMIT 1", (name.lower(),))
+                row = cursor.fetchone()
+                if row and row["id"] not in seen_ids:
+                    seen_ids.add(row["id"])
+                    resolved.append(row)
+            except Exception:
+                pass
+
+    return resolved
 
 
 def status_to_stage_index(status: str) -> int:
@@ -85,7 +190,7 @@ def resolve_product_id(cursor, item: dict):
     base = item.get("product") if isinstance(item.get("product"), dict) else item
 
     for source in (item, base):
-        for key in ("producto_id", "productId", "id"):
+        for key in ("producto_id", "productId"):
             val = source.get(key)
             if isinstance(val, int) and val > 0:
                 return val
@@ -94,19 +199,39 @@ def resolve_product_id(cursor, item: dict):
                 if m:
                     return int(m.group(1))
 
+    top_id = item.get("id")
+    if isinstance(top_id, int) and top_id > 0:
+        return top_id
+    if isinstance(top_id, str):
+        m = re.match(r"^(\d+)", top_id.strip())
+        if m:
+            return int(m.group(1))
+
     name = (item.get("name") or item.get("nombre") or base.get("name") or base.get("nombre") or "").strip()
     size = (item.get("size") or item.get("tamano") or base.get("size") or base.get("tamano") or "").strip()
 
     if name:
-        cursor.execute("SELECT * FROM productos WHERE nombre = %s", (name,))
+        cursor.execute(
+            """
+            SELECT p.id, pr.nombre AS presentacion
+            FROM productos p
+            INNER JOIN helados h ON p.helado_id = h.id
+            INNER JOIN presentaciones pr ON p.presentacion_id = pr.id
+            WHERE h.nombre_comercial = %s
+            """,
+            (name,),
+        )
         matches = cursor.fetchall()
         if matches:
             if size:
                 for m in matches:
-                    prod_size = str(m.get("tamano") or m.get("presentacion") or "")
-                    if size.lower() in prod_size.lower():
+                    if size.lower() in str(m.get("presentacion") or "").lower():
                         return m["id"]
             return matches[0]["id"]
+
+    base_id = base.get("id")
+    if isinstance(base_id, int) and base_id > 0:
+        return base_id
 
     cursor.execute("SELECT id FROM productos ORDER BY id ASC LIMIT 1")
     fallback = cursor.fetchone()
@@ -164,16 +289,26 @@ def extract_date_meta(row: dict) -> dict:
 @orders_bp.route("", methods=["GET"])
 @orders_bp.route("/", methods=["GET"])
 def list_orders():
+    filter_user_id = request.args.get("usuario_id", type=int)
+
     conn = get_db_connection()
     with conn.cursor() as cursor:
         cursor.execute("SELECT * FROM pedidos ORDER BY id DESC")
         pedidos = cursor.fetchall()
 
+        usuarios_map = {}
+        try:
+            cursor.execute("SELECT id, nombre, correo FROM usuarios")
+            for u in cursor.fetchall():
+                usuarios_map[u["id"]] = u
+        except Exception:
+            pass
+
         clientes_map = {}
         try:
             cursor.execute("SELECT * FROM clientes")
             for c in cursor.fetchall():
-                clientes_map[c["id"]] = c.get("nombre") or c.get("nombre_completo") or c.get("name") or "Cliente"
+                clientes_map[c["id"]] = c
         except Exception:
             pass
 
@@ -188,6 +323,13 @@ def list_orders():
         result = []
         for p in pedidos:
             pid = p["id"]
+            cli_row = clientes_map.get(p.get("cliente_id")) or {}
+            uid = p.get("usuario_id") or cli_row.get("usuario_id")
+            user_row = usuarios_map.get(uid) or {}
+
+            if filter_user_id and uid != filter_user_id:
+                continue
+
             order_folio = p.get("folio") or f"#FL-{pid}"
             raw_status = p.get("estado") or "Pendiente"
             stage = p.get("etapa")
@@ -201,8 +343,17 @@ def list_orders():
             customer_name = (
                 p.get("cliente_nombre")
                 or p.get("cliente")
-                or clientes_map.get(p.get("cliente_id"))
+                or cli_row.get("nombre")
+                or cli_row.get("nombre_completo")
+                or user_row.get("nombre")
                 or "Cliente Floamy"
+            )
+            customer_email = (
+                p.get("correo")
+                or cli_row.get("correo")
+                or cli_row.get("email")
+                or user_row.get("correo")
+                or ""
             )
 
             items = []
@@ -249,6 +400,8 @@ def list_orders():
             result.append({
                 "id": order_folio,
                 "dbId": pid,
+                "usuario_id": uid,
+                "correo": customer_email,
                 "orderFolio": order_folio,
                 "folio": payment_folio or order_folio,
                 "customer": customer_name,
@@ -278,13 +431,34 @@ def list_orders():
 @orders_bp.route("/", methods=["POST"])
 def create_order():
     data = request.get_json(silent=True) or {}
-    customer = (data.get("customer") or data.get("customerName") or data.get("cliente") or "Cliente Web").strip()
+    customer = (data.get("customer") or data.get("customerName") or data.get("cliente") or "").strip()
     raw_payment = str(data.get("paymentMethod") or data.get("payment") or data.get("metodo_pago") or "Efectivo").strip()
-    raw_canal = str(data.get("canal") or ("Sucursal" if "mostrador" in customer.lower() else "PWA"))
+    is_pos_order = "mostrador" in customer.lower() or str(data.get("canal") or "").lower() in ("sucursal", "pos")
+    raw_canal = str(data.get("canal") or ("Sucursal" if is_pos_order else "PWA"))
     items = data.get("items") or data.get("productos") or []
 
     if not items:
         return jsonify({"error": "El carrito está vacío"}), 400
+
+    conn = get_db_connection()
+    registered_user = None
+    raw_uid = data.get("usuario_id")
+    if raw_uid:
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id, nombre, correo, activo FROM usuarios WHERE id = %s LIMIT 1",
+                    (int(raw_uid),),
+                )
+                registered_user = cursor.fetchone()
+        except Exception:
+            registered_user = None
+
+    if not is_pos_order and (not registered_user or not registered_user.get("activo")):
+        return jsonify({"error": "Debes iniciar sesión o registrarte para confirmar tu pedido."}), 401
+
+    if not customer:
+        customer = registered_user["nombre"] if registered_user else "Cliente Mostrador"
 
     normalized_items = []
     for raw_item in items:
@@ -311,6 +485,8 @@ def create_order():
             "size": size,
             "toppings": toppings_str,
             "toppingIds": topping_ids,
+            "resolved_prod_id": None,
+            "resolved_toppings": [],
         })
 
     calc_subtotal = sum(i["qty"] * i["price"] for i in normalized_items)
@@ -323,7 +499,7 @@ def create_order():
         init_stage = max(0, min(3, int(data["stage"])))
     elif data.get("status") or data.get("estado"):
         init_stage = status_to_stage_index(str(data.get("status") or data.get("estado")))
-    elif "mostrador" in customer.lower():
+    elif is_pos_order:
         init_stage = 3
     else:
         init_stage = 0
@@ -331,12 +507,93 @@ def create_order():
     folio = f"#FL-{random.randint(1000, 9999)}"
     payment_folio = f"FP-{random.randint(1000000, 9999999)}"
 
-    conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
             cursor.execute("SHOW COLUMNS FROM pedidos")
             ped_schema = cursor.fetchall()
             ped_cols = {row["Field"] for row in ped_schema}
+
+            hel_cols = _get_columns(cursor, "helados")
+            ing_cols = _get_columns(cursor, "ingredientes")
+            ing_stock_col = "stock_actual" if "stock_actual" in ing_cols else "stock"
+            mov_cols = _get_columns(cursor, "movimientos_inventario")
+
+            litros_requeridos = {}
+            desechables_requeridos = {}
+            toppings_ing_requeridos = {}
+            toppings_porciones_requeridas = {}
+
+            for item in normalized_items:
+                pid_check = resolve_product_id(cursor, item["raw"])
+                item["resolved_prod_id"] = pid_check
+                if pid_check is not None:
+                    cursor.execute("SELECT helado_id, presentacion_id FROM productos WHERE id = %s", (pid_check,))
+                    p_row = cursor.fetchone()
+                    if p_row:
+                        cursor.execute("SELECT * FROM presentaciones WHERE id = %s", (p_row["presentacion_id"],))
+                        pr_row = cursor.fetchone()
+
+                        hid = p_row["helado_id"]
+                        litros_item = round(_infer_liters(pr_row, item["size"]) * item["qty"], 4)
+                        litros_requeridos[hid] = round(litros_requeridos.get(hid, 0.0) + litros_item, 4)
+
+                        for des_id in _get_presentation_disposable_ids(pr_row):
+                            desechables_requeridos[des_id] = desechables_requeridos.get(des_id, 0) + item["qty"]
+
+                resolved_tops = _resolve_item_toppings(cursor, item)
+                item["resolved_toppings"] = resolved_tops
+                for t_row in resolved_tops:
+                    tid = int(t_row["id"])
+                    toppings_porciones_requeridas[tid] = toppings_porciones_requeridas.get(tid, 0) + item["qty"]
+                    ing_id = t_row.get("ingrediente_id")
+                    if ing_id:
+                        porcion = float(t_row.get("cantidad_por_porcion") or 0.04)
+                        cant_ing = round(porcion * item["qty"], 4)
+                        toppings_ing_requeridos[int(ing_id)] = round(
+                            toppings_ing_requeridos.get(int(ing_id), 0.0) + cant_ing, 4
+                        )
+
+            if "stock_litros" in hel_cols:
+                for hid, req_l in litros_requeridos.items():
+                    cursor.execute(
+                        "SELECT nombre_comercial, COALESCE(stock_litros, 0) AS stock_litros FROM helados WHERE id = %s",
+                        (hid,),
+                    )
+                    h_row = cursor.fetchone()
+                    if h_row and float(h_row["stock_litros"]) < req_l:
+                        return jsonify({
+                            "error": f"Stock insuficiente de {h_row['nombre_comercial']}: quedan {float(h_row['stock_litros'])} L."
+                        }), 400
+
+            for des_id, req_qty in desechables_requeridos.items():
+                cursor.execute(
+                    f"SELECT nombre, {ing_stock_col} AS stock_actual FROM ingredientes WHERE id = %s",
+                    (des_id,),
+                )
+                i_row = cursor.fetchone()
+                if i_row and float(i_row["stock_actual"] or 0) < req_qty:
+                    return jsonify({
+                        "error": f"Solo hay {int(float(i_row['stock_actual'] or 0))} unidades disponibles de {i_row['nombre']}."
+                    }), 400
+
+            for ing_id, req_cant in toppings_ing_requeridos.items():
+                cursor.execute(
+                    f"SELECT nombre, unidad, {ing_stock_col} AS stock_actual FROM ingredientes WHERE id = %s",
+                    (ing_id,),
+                )
+                i_row = cursor.fetchone()
+                if i_row and float(i_row["stock_actual"] or 0) < req_cant:
+                    return jsonify({
+                        "error": f"Stock insuficiente de topping ({i_row['nombre']}): quedan {float(i_row['stock_actual'])} {i_row['unidad']}."
+                    }), 400
+
+            for tid, req_porciones in toppings_porciones_requeridas.items():
+                cursor.execute("SELECT nombre, stock, ingrediente_id FROM toppings WHERE id = %s", (tid,))
+                t_row = cursor.fetchone()
+                if t_row and not t_row.get("ingrediente_id") and int(t_row.get("stock") or 0) < req_porciones:
+                    return jsonify({
+                        "error": f"Solo quedan {int(t_row['stock'])} porciones de {t_row['nombre']}."
+                    }), 400
 
             payment_method = resolve_enum_col(
                 ped_schema,
@@ -359,32 +616,42 @@ def create_order():
                 cli_schema = cursor.fetchall()
                 cli_cols = {row["Field"] for row in cli_schema}
                 name_col = "nombre" if "nombre" in cli_cols else ("nombre_completo" if "nombre_completo" in cli_cols else None)
-                if name_col:
+                email_col = "correo" if "correo" in cli_cols else ("email" if "email" in cli_cols else None)
+
+                found_cli = None
+                if registered_user and "usuario_id" in cli_cols:
+                    cursor.execute("SELECT id FROM clientes WHERE usuario_id = %s LIMIT 1", (registered_user["id"],))
+                    found_cli = cursor.fetchone()
+                if not found_cli and registered_user and email_col:
+                    cursor.execute(f"SELECT id FROM clientes WHERE {email_col} = %s LIMIT 1", (registered_user["correo"],))
+                    found_cli = cursor.fetchone()
+                if not found_cli and name_col:
                     cursor.execute(f"SELECT id FROM clientes WHERE {name_col} = %s LIMIT 1", (customer,))
                     found_cli = cursor.fetchone()
-                    if found_cli:
-                        cliente_id = found_cli["id"]
-                    else:
-                        cli_data = {name_col: customer}
-                        raw_email = (data.get("correo") or data.get("email") or "").strip()
-                        unique_email = raw_email or f"cliente.{random.randint(100000, 999999)}@floamy.local"
-                        if "correo" in cli_cols:
-                            cli_data["correo"] = unique_email
-                        elif "email" in cli_cols:
-                            cli_data["email"] = unique_email
 
-                        fill_required_defaults(cli_schema, cli_data)
+                if found_cli:
+                    cliente_id = found_cli["id"]
+                elif name_col:
+                    cli_data = {name_col: customer}
+                    if registered_user and "usuario_id" in cli_cols:
+                        cli_data["usuario_id"] = registered_user["id"]
+                    raw_email = (registered_user["correo"] if registered_user else "") or (data.get("correo") or data.get("email") or "").strip()
+                    unique_email = raw_email or f"cliente.{random.randint(100000, 999999)}@floamy.local"
+                    if email_col:
+                        cli_data[email_col] = unique_email
 
-                        for col in cli_schema:
-                            fname = col["Field"]
-                            if col.get("Key") == "UNI" and fname not in (name_col, "correo", "email"):
-                                if not cli_data.get(fname):
-                                    cli_data[fname] = f"{random.randint(1000000000, 9999999999)}"
+                    fill_required_defaults(cli_schema, cli_data)
 
-                        c_cols = ", ".join(cli_data.keys())
-                        c_ph = ", ".join(["%s"] * len(cli_data))
-                        cursor.execute(f"INSERT INTO clientes ({c_cols}) VALUES ({c_ph})", tuple(cli_data.values()))
-                        cliente_id = cursor.lastrowid
+                    for col in cli_schema:
+                        fname = col["Field"]
+                        if col.get("Key") == "UNI" and fname not in (name_col, "correo", "email"):
+                            if not cli_data.get(fname):
+                                cli_data[fname] = f"{random.randint(1000000000, 9999999999)}"
+
+                    c_cols = ", ".join(cli_data.keys())
+                    c_ph = ", ".join(["%s"] * len(cli_data))
+                    cursor.execute(f"INSERT INTO clientes ({c_cols}) VALUES ({c_ph})", tuple(cli_data.values()))
+                    cliente_id = cursor.lastrowid
 
             ped_data = {}
             if "folio" in ped_cols:
@@ -395,14 +662,8 @@ def create_order():
                 ped_data["cliente_nombre"] = customer
             elif "cliente" in ped_cols:
                 ped_data["cliente"] = customer
-            if "usuario_id" in ped_cols and data.get("usuario_id"):
-                try:
-                    uid = int(data["usuario_id"])
-                    cursor.execute("SELECT id FROM usuarios WHERE id = %s LIMIT 1", (uid,))
-                    if cursor.fetchone():
-                        ped_data["usuario_id"] = uid
-                except Exception:
-                    pass
+            if "usuario_id" in ped_cols and registered_user:
+                ped_data["usuario_id"] = registered_user["id"]
             if "subtotal" in ped_cols:
                 ped_data["subtotal"] = subtotal
             if "descuento" in ped_cols:
@@ -430,7 +691,7 @@ def create_order():
             det_cols = {row["Field"] for row in det_schema}
 
             for item in normalized_items:
-                prod_id = resolve_product_id(cursor, item["raw"])
+                prod_id = item["resolved_prod_id"] if item["resolved_prod_id"] is not None else resolve_product_id(cursor, item["raw"])
                 qty = item["qty"]
                 price = item["price"]
 
@@ -461,22 +722,93 @@ def create_order():
                 cursor.execute(f"INSERT INTO detalle_pedido ({d_cols}) VALUES ({d_ph})", tuple(det_data.values()))
 
                 if prod_id is not None:
-                    try:
-                        cursor.execute(
-                            "UPDATE productos SET stock = GREATEST(0, stock - %s) WHERE id = %s",
-                            (qty, prod_id),
-                        )
-                    except Exception:
-                        pass
+                    cursor.execute("SELECT helado_id, presentacion_id FROM productos WHERE id = %s", (prod_id,))
+                    prod_row = cursor.fetchone()
+                    if prod_row:
+                        cursor.execute("SELECT * FROM presentaciones WHERE id = %s", (prod_row["presentacion_id"],))
+                        pres_row = cursor.fetchone()
 
-                for tid in item.get("toppingIds") or []:
-                    try:
+                        if "stock_litros" in hel_cols:
+                            litros_item = round(_infer_liters(pres_row, item["size"]) * qty, 4)
+                            cursor.execute(
+                                "UPDATE helados SET stock_litros = GREATEST(0, ROUND(COALESCE(stock_litros, 0) - %s, 4)) WHERE id = %s",
+                                (litros_item, prod_row["helado_id"]),
+                            )
+                        else:
+                            cursor.execute(
+                                "UPDATE productos SET stock = GREATEST(0, stock - %s) WHERE id = %s",
+                                (qty, prod_id),
+                            )
+
+                        for des_id in _get_presentation_disposable_ids(pres_row):
+                            cursor.execute(
+                                f"UPDATE ingredientes SET {ing_stock_col} = GREATEST(0, {ing_stock_col} - %s) WHERE id = %s",
+                                (qty, des_id),
+                            )
+                            if mov_cols:
+                                mov_data = {"ingrediente_id": des_id, "cantidad": qty}
+                                if "tipo" in mov_cols:
+                                    mov_data["tipo"] = "salida"
+                                elif "tipo_movimiento" in mov_cols:
+                                    mov_data["tipo_movimiento"] = "salida"
+                                if "motivo" in mov_cols:
+                                    mov_data["motivo"] = f"Venta pedido {folio}"
+                                elif "observaciones" in mov_cols:
+                                    mov_data["observaciones"] = f"Venta pedido {folio}"
+                                cols_sql = ", ".join(mov_data.keys())
+                                ph_sql = ", ".join(["%s"] * len(mov_data))
+                                cursor.execute(
+                                    f"INSERT INTO movimientos_inventario ({cols_sql}) VALUES ({ph_sql})",
+                                    tuple(mov_data.values()),
+                                )
+
+                for t_row in item.get("resolved_toppings") or []:
+                    tid = int(t_row["id"])
+                    ing_id = t_row.get("ingrediente_id")
+                    if ing_id:
+                        porcion = float(t_row.get("cantidad_por_porcion") or 0.04)
+                        cant_ing = round(porcion * qty, 4)
+                        cursor.execute(
+                            f"UPDATE ingredientes SET {ing_stock_col} = GREATEST(0, {ing_stock_col} - %s) WHERE id = %s",
+                            (cant_ing, int(ing_id)),
+                        )
+                        cursor.execute(
+                            f"SELECT {ing_stock_col} AS stock_actual FROM ingredientes WHERE id = %s",
+                            (int(ing_id),),
+                        )
+                        updated_ing = cursor.fetchone()
+                        new_portions = (
+                            math.floor(float(updated_ing["stock_actual"]) / porcion)
+                            if updated_ing and porcion > 0
+                            else 0
+                        )
+                        cursor.execute("UPDATE toppings SET stock = %s WHERE id = %s", (new_portions, tid))
+
+                        if mov_cols:
+                            mov_data = {"ingrediente_id": int(ing_id), "cantidad": cant_ing}
+                            if "tipo" in mov_cols:
+                                mov_data["tipo"] = "salida"
+                            elif "tipo_movimiento" in mov_cols:
+                                mov_data["tipo_movimiento"] = "salida"
+                            motivo_top = f"Venta pedido {folio} (Topping: {t_row.get('nombre')})"
+                            if "motivo" in mov_cols:
+                                mov_data["motivo"] = motivo_top
+                            elif "observaciones" in mov_cols:
+                                mov_data["observaciones"] = motivo_top
+                            cols_sql = ", ".join(mov_data.keys())
+                            ph_sql = ", ".join(["%s"] * len(mov_data))
+                            cursor.execute(
+                                f"INSERT INTO movimientos_inventario ({cols_sql}) VALUES ({ph_sql})",
+                                tuple(mov_data.values()),
+                            )
+                    else:
                         cursor.execute(
                             "UPDATE toppings SET stock = GREATEST(0, stock - %s) WHERE id = %s",
-                            (qty, int(tid)),
+                            (qty, tid),
                         )
-                    except Exception:
-                        pass
+
+            if "stock_litros" in hel_cols:
+                _sync_all_product_stocks(cursor, ing_stock_col)
 
             for pay_table in ("pagos_simulados", "pagos"):
                 try:

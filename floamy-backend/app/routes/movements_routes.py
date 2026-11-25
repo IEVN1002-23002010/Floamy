@@ -4,39 +4,62 @@ from app.services.stock_service import adjust_ingredient_stock
 
 movements_bp = Blueprint("movements", __name__)
 
-@movements_bp.get("/")
+
+@movements_bp.route("", methods=["GET"])
+@movements_bp.route("/", methods=["GET"])
 def list_movements():
     conn = get_db_connection()
     with conn.cursor() as cursor:
         cursor.execute("""
-            SELECT m.id, DATE_FORMAT(m.fecha, '%d %b, %H:%i') AS date, m.tipo AS type,
-                   i.nombre AS ingredient, CONCAT(m.cantidad, ' ', i.unidad) AS amount,
+            SELECT m.id,
+                   m.ingrediente_id,
+                   m.cantidad,
+                   DATE_FORMAT(m.fecha, '%d %b, %H:%i') AS date,
+                   m.tipo AS type,
+                   i.nombre AS ingredient,
+                   CONCAT(m.cantidad, ' ', i.unidad) AS amount,
                    COALESCE(u.nombre, 'Sistema') AS responsible
             FROM movimientos_ingredientes m
             JOIN ingredientes i ON m.ingrediente_id = i.id
             LEFT JOIN usuarios u ON m.usuario_id = u.id
-            ORDER BY m.fecha DESC
+            ORDER BY m.fecha DESC, m.id DESC
         """)
         rows = cursor.fetchall()
     return jsonify(rows)
 
-@movements_bp.post("/")
+
+@movements_bp.route("", methods=["POST"])
+@movements_bp.route("/", methods=["POST"])
 def register_movement():
-    data = request.get_json() or {}
-    qty = float(data.get("cantidad", 0))
-    delta = qty if data.get("tipo") == "Entrada" else -abs(qty)
+    data = request.get_json(silent=True) or {}
+    qty = abs(float(data.get("cantidad", 0)))
+    tipo = data.get("tipo", "Entrada")
+    delta = qty if tipo == "Entrada" else -qty
+    ing_id = int(data["ingredienteId"])
+
     conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute(
-            "INSERT INTO movimientos_ingredientes (ingrediente_id, tipo, cantidad, usuario_id) VALUES (%s, %s, %s, %s)",
-            (data["ingredienteId"], data["tipo"], delta, data.get("usuarioId"))
-        )
-        adjust_ingredient_stock(cursor, data["ingredienteId"], delta)
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO movimientos_ingredientes (ingrediente_id, tipo, cantidad, usuario_id) VALUES (%s, %s, %s, %s)",
+                (ing_id, tipo, delta, data.get("usuarioId"))
+            )
+            adjust_ingredient_stock(cursor, ing_id, delta)
+        conn.commit()
+    except Exception as exc:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        return jsonify({"error": f"No se pudo registrar el movimiento: {exc}"}), 400
+
     return jsonify({"message": "Movimiento registrado"}), 201
 
-@movements_bp.put("/<int:mov_id>")
+
+@movements_bp.route("/<int:mov_id>", methods=["PUT", "PATCH", "POST"])
+@movements_bp.route("/<int:mov_id>/", methods=["PUT", "PATCH", "POST"])
 def update_movement(mov_id):
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     conn = get_db_connection()
     try:
         with conn.cursor() as cursor:
@@ -48,7 +71,7 @@ def update_movement(mov_id):
             old_cant = abs(float(old["cantidad"]))
             old_delta = old_cant if old["tipo"] == "Entrada" else -old_cant
 
-            adjust_ingredient_stock(cursor, old["ingrediente_id"], -old_delta)
+            adjust_ingredient_stock(cursor, int(old["ingrediente_id"]), -old_delta)
 
             new_ing = int(data.get("ingredienteId", old["ingrediente_id"]))
             new_tipo = data.get("tipo", old["tipo"])
@@ -62,7 +85,7 @@ def update_movement(mov_id):
                 SET ingrediente_id = %s, tipo = %s, cantidad = %s
                 WHERE id = %s
                 """,
-                (new_ing, new_tipo, new_cant, mov_id),
+                (new_ing, new_tipo, new_delta, mov_id),
             )
         conn.commit()
     except Exception as exc:
@@ -75,7 +98,8 @@ def update_movement(mov_id):
     return jsonify({"message": "Movimiento actualizado"})
 
 
-@movements_bp.delete("/<int:mov_id>")
+@movements_bp.route("/<int:mov_id>", methods=["DELETE"])
+@movements_bp.route("/<int:mov_id>/", methods=["DELETE"])
 def delete_movement(mov_id):
     conn = get_db_connection()
     try:
@@ -88,8 +112,7 @@ def delete_movement(mov_id):
             old_cant = abs(float(old["cantidad"]))
             old_delta = old_cant if old["tipo"] == "Entrada" else -old_cant
 
-            # Devuelve el stock antes de borrar el movimiento
-            adjust_ingredient_stock(cursor, old["ingrediente_id"], -old_delta)
+            adjust_ingredient_stock(cursor, int(old["ingrediente_id"]), -old_delta)
             cursor.execute("DELETE FROM movimientos_ingredientes WHERE id = %s", (mov_id,))
         conn.commit()
     except Exception as exc:

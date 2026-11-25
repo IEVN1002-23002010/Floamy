@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { NgFor, NgIf } from '@angular/common';
 import { environment } from '../../../../environments/environment.development';
+import { AuthService } from '../../../core/services/auth.service';
 import { PageTitleComponent } from '../../../shared/components/page-title/page-title.component';
 
 interface RoleCard {
@@ -25,6 +26,12 @@ interface RoleCard {
          role="alert"
          class="mb-5 p-3 text-xs font-semibold text-emerald-800 rounded-xl bg-emerald-50 border border-emerald-200">
       {{ savedBanner() }}
+    </div>
+
+    <div *ngIf="errorBanner()"
+         role="alert"
+         class="mb-5 p-3 text-xs font-semibold text-red-800 rounded-xl bg-red-50 border border-red-200">
+      {{ errorBanner() }}
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
@@ -67,11 +74,13 @@ interface RoleCard {
 })
 export class RolesComponent implements OnInit {
   private http = inject(HttpClient);
+  private auth = inject(AuthService);
   private url = `${environment.apiUrl}/roles`;
 
   roles = signal<RoleCard[]>([]);
   savingId = signal<number | null>(null);
   savedBanner = signal('');
+  errorBanner = signal('');
 
   permissionList = [
     { key: 'dashboard', label: 'Dashboard ejecutivo' },
@@ -94,11 +103,18 @@ export class RolesComponent implements OnInit {
   }
 
   loadRoles() {
-    this.http.get<RoleCard[]>(`${this.url}/`).subscribe((list) => this.roles.set(list));
+    this.errorBanner.set('');
+    this.http.get<RoleCard[]>(`${this.url}/`).subscribe({
+      next: (list) => this.roles.set(list),
+      error: (err) => {
+        this.errorBanner.set(err?.error?.error || 'No se pudieron cargar los roles. Verifica que Flask esté activo.');
+      }
+    });
   }
 
   togglePerm(role: RoleCard, key: string) {
     this.savedBanner.set('');
+    this.errorBanner.set('');
     this.roles.update((list) =>
       list.map((r) =>
         r.id === role.id
@@ -111,14 +127,17 @@ export class RolesComponent implements OnInit {
   saveRole(role: RoleCard) {
     this.savingId.set(role.id);
     this.savedBanner.set('');
+    this.errorBanner.set('');
 
     this.http.put(`${this.url}/${role.id}`, { permisos: role.permisos }).subscribe({
       next: () => {
         this.savingId.set(null);
+        this.auth.updateCurrentUserPermissions(role.nombre, role.permisos);
         this.savedBanner.set(`Permisos de "${role.nombre}" guardados correctamente.`);
       },
-      error: () => {
+      error: (err) => {
         this.savingId.set(null);
+        this.errorBanner.set(err?.error?.error || 'Error al guardar los permisos en el servidor.');
       },
     });
   }

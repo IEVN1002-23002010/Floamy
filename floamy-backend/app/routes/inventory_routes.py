@@ -40,12 +40,11 @@ def add_ingredient():
             cursor.execute(
                 """
                 INSERT INTO ingredientes (nombre, categoria, stock_actual, stock_minimo, unidad, costo_unitario, proveedor_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, 0, %s, %s, %s, %s)
                 """,
                 (
                     data["name"].strip(),
                     categoria,
-                    float(data["current"]),
                     float(data["minimum"]),
                     data.get("unit", "L").strip(),
                     costo,
@@ -77,14 +76,13 @@ def update_ingredient(ing_id):
             cursor.execute(
                 """
                 UPDATE ingredientes
-                SET nombre = %s, categoria = %s, stock_actual = %s, stock_minimo = %s,
+                SET nombre = %s, categoria = %s, stock_minimo = %s,
                     unidad = %s, costo_unitario = %s, proveedor_id = %s
                 WHERE id = %s
                 """,
                 (
                     data["name"].strip(),
                     categoria,
-                    float(data["current"]),
                     float(data["minimum"]),
                     data.get("unit", "L").strip(),
                     costo,
