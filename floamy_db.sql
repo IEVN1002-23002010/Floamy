@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 19, 2026 at 10:54 PM
+-- Generation Time: Nov 25, 2026 at 11:48 PM
 -- Server version: 8.4.3
 -- PHP Version: 8.3.33
 
@@ -43,10 +43,20 @@ CREATE TABLE `clientes` (
 --
 
 INSERT INTO `clientes` (`id`, `nombre`, `correo`, `telefono`, `password_hash`, `total_compras`, `total_gastado`, `fecha_registro`) VALUES
-(1, 'Christofer Dario', 'langcarmine916@gmail.com', '', 'Contrest123', 0, 0.00, '2026-11-17 15:59:05'),
-(24, 'manlo', 'line@gmail.com', '', NULL, 0, 0.00, '2026-11-17 17:48:36'),
-(25, 'Andrea Moreno', '', NULL, NULL, 0, 0.00, '2026-11-17 18:00:37'),
-(64, 'Venta de mostrador', 'cliente.213861@floamy.local', NULL, NULL, 0, 0.00, '2026-11-17 18:41:44');
+(1, 'Venta de mostrador', 'mostrador@floamy.mx', '477 000 0000', NULL, 7, 1042.00, '2026-11-01 09:00:00'),
+(2, 'Mariana López', 'mariana.lopez@correo.mx', '477 234 8910', 'Cliente123', 4, 558.30, '2026-11-03 12:15:00'),
+(3, 'Jorge Ávila', 'jorge.avila@correo.mx', '477 561 2034', 'Cliente123', 3, 516.50, '2026-11-05 16:40:00'),
+(4, 'Sofía Herrera', 'sofia.herrera@correo.mx', '477 892 4412', 'Cliente123', 3, 475.00, '2026-11-07 14:20:00'),
+(5, 'Carlos Mendoza', 'carlos.mendoza@correo.mx', '477 318 7750', 'Cliente123', 3, 517.00, '2026-11-09 18:05:00'),
+(6, 'Valeria Ortega', 'valeria.ortega@correo.mx', '477 645 1928', 'Cliente123', 2, 220.00, '2026-11-11 11:50:00'),
+(7, 'Diego Ramírez', 'diego.ramirez@correo.mx', '477 903 5581', 'Cliente123', 2, 341.00, '2026-11-12 17:30:00'),
+(8, 'Fernanda Castro', 'fernanda.castro@correo.mx', '477 412 6390', 'Cliente123', 1, 110.00, '2026-11-14 15:10:00'),
+(9, 'Christofer Dario', 'christofer@floamy.mx', '477 780 1122', 'Contrest123', 1, 226.00, '2026-11-15 13:00:00'),
+(10, 'Andrea Moreno', 'cliente.672450@floamy.local', NULL, NULL, 0, 0.00, '2026-11-20 20:44:37'),
+(11, 'Cliente Web', 'cliente.148245@floamy.local', NULL, NULL, 0, 0.00, '2026-11-24 17:42:10'),
+(12, 'Pablo Reyes', 'pablo@floamy.mx', NULL, NULL, 0, 0.00, '2026-11-24 17:46:50'),
+(13, 'Christofer Dario', 'lang@floamy.mx', '213213321', NULL, 0, 0.00, '2026-11-24 18:05:07'),
+(14, 'Christofer Dario', 'pablo@gmail.mx', '', NULL, 0, 0.00, '2026-11-24 18:37:38');
 
 -- --------------------------------------------------------
 
@@ -76,19 +86,48 @@ CREATE TABLE `cortes_caja` (
 --
 
 INSERT INTO `cortes_caja` (`id`, `fecha_corte`, `usuario_id`, `responsable`, `fondo_inicial`, `ventas_efectivo`, `ventas_tarjeta`, `ventas_transferencia`, `total_ventas`, `pedidos_count`, `efectivo_esperado`, `efectivo_contado`, `diferencia`, `observaciones`) VALUES
-(1, '2026-11-18 19:48:39', 1, 'Andrea Moreno', 500.00, 0.00, 0.00, 0.00, 0.00, 0, 500.00, 5000.00, 4500.00, NULL),
-(2, '2026-11-18 19:48:48', 1, 'Andrea Moreno', 500.00, 0.00, 0.00, 0.00, 0.00, 0, 500.00, 7500.00, 7000.00, NULL),
-(3, '2026-11-18 19:50:21', 1, 'Andrea Moreno', 500.00, 0.00, 0.00, 0.00, 0.00, 0, 500.00, 500.00, 0.00, NULL),
-(4, '2026-11-18 19:50:55', 1, 'Andrea Moreno', 0.00, 0.00, 0.00, 0.00, 0.00, 0, 0.00, 150.00, 150.00, 'detalle'),
-(5, '2026-11-18 19:51:16', 1, 'Andrea Moreno', 500.00, 0.00, 0.00, 0.00, 0.00, 0, 500.00, 50.00, -450.00, NULL),
-(6, '2026-11-18 23:05:55', 1, 'Andrea Moreno', 500.00, 1817.00, 0.00, 0.00, 1817.00, 11, 2317.00, 2317.00, 0.00, NULL),
-(7, '2026-11-19 00:52:35', 1, 'Andrea Moreno', 500.00, 307.00, 86.00, 201.00, 594.00, 9, 807.00, 807.00, 0.00, NULL),
-(8, '2026-11-19 00:52:43', 1, 'Andrea Moreno', 900.00, 307.00, 86.00, 201.00, 594.00, 9, 1207.00, 807.00, -400.00, NULL),
-(9, '2026-11-19 00:53:05', 1, 'Andrea Moreno', 500.00, 307.00, 86.00, 201.00, 594.00, 9, 807.00, 8070.00, 7263.00, NULL),
-(10, '2026-11-19 01:07:48', 1, 'Andrea Moreno', 500.00, 4552.00, 3628.00, 201.00, 8381.00, 14, 5052.00, 5052.00, 0.00, NULL),
-(11, '2026-11-19 01:08:12', 1, 'Andrea Moreno', 500.00, 4552.00, 3628.00, 201.00, 8381.00, 14, 5052.00, 5052.00, 0.00, NULL),
-(12, '2026-11-19 16:41:34', 1, 'Andrea Moreno', 500.00, 8452.00, 3628.00, 201.00, 12281.00, 15, 8952.00, 8952.00, 0.00, NULL),
-(13, '2026-11-19 16:42:04', 1, 'Andrea Moreno', 500.00, 8452.00, 3628.00, 201.00, 12281.00, 15, 8952.00, 8953.00, 1.00, NULL);
+(1, '2026-11-16 20:30:00', 1, 'Andrea Moreno', 500.00, 325.00, 245.00, 184.50, 754.50, 5, 825.00, 825.00, 0.00, 'Cierre lunes sin novedades'),
+(2, '2026-11-17 20:30:00', 1, 'Andrea Moreno', 500.00, 127.00, 421.30, 330.00, 878.30, 6, 627.00, 627.00, 0.00, 'Cierre martes cuadrado'),
+(3, '2026-11-18 20:30:00', 3, 'Lucía García', 500.00, 375.00, 513.00, 216.00, 1104.00, 7, 875.00, 875.00, 0.00, 'Turno vespertino cerrado en orden'),
+(4, '2026-11-25 17:35:12', 1, 'Andrea Moreno', 500.00, 1912.00, 0.00, 0.00, 1912.00, 5, -2870.50, 2412.00, 5282.50, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `detalle_compra`
+--
+
+CREATE TABLE `detalle_compra` (
+  `id` int NOT NULL,
+  `orden_id` int NOT NULL,
+  `ingrediente_id` int NOT NULL,
+  `cantidad` decimal(10,2) NOT NULL,
+  `costo_unitario` decimal(10,2) NOT NULL,
+  `subtotal` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `detalle_compra`
+--
+
+INSERT INTO `detalle_compra` (`id`, `orden_id`, `ingrediente_id`, `cantidad`, `costo_unitario`, `subtotal`) VALUES
+(1, 1, 1, 20.00, 24.50, 490.00),
+(2, 1, 2, 5.00, 86.00, 430.00),
+(3, 2, 11, 100.00, 1.80, 180.00),
+(4, 2, 13, 150.00, 1.60, 240.00),
+(5, 2, 17, 50.00, 5.80, 290.00),
+(6, 2, 19, 200.00, 0.65, 130.00),
+(7, 3, 5, 10.00, 56.00, 560.00),
+(8, 3, 6, 8.00, 49.00, 392.00),
+(9, 4, 6, 10.00, 49.00, 490.00),
+(10, 5, 1, 10.00, 24.50, 245.00),
+(11, 6, 1, 20.00, 24.50, 490.00),
+(12, 6, 2, 20.00, 86.00, 1720.00),
+(13, 6, 21, 20.00, 4.00, 80.00),
+(14, 7, 3, 20.00, 27.85, 557.00),
+(15, 8, 3, 10.00, 27.85, 278.50),
+(16, 9, 3, 10.00, 27.85, 278.50),
+(17, 10, 7, 30.00, 32.00, 960.00);
 
 -- --------------------------------------------------------
 
@@ -110,64 +149,84 @@ CREATE TABLE `detalle_pedido` (
 --
 
 INSERT INTO `detalle_pedido` (`id`, `pedido_id`, `producto_id`, `cantidad`, `precio_unitario`, `toppings`) VALUES
-(1, 1, 5, 1, 45.00, NULL),
-(2, 1, 6, 1, 150.00, NULL),
-(3, 2, 7, 1, 45.00, NULL),
-(4, 2, 8, 1, 150.00, NULL),
-(5, 3, 5, 1, 45.00, NULL),
-(6, 4, 8, 1, 150.00, NULL),
-(7, 4, 7, 3, 45.00, NULL),
-(8, 4, 9, 1, 45.00, NULL),
-(9, 5, 4, 2, 150.00, NULL),
-(10, 12, 5, 1, 45.00, NULL),
-(11, 12, 6, 4, 150.00, NULL),
-(12, 13, 7, 5, 45.00, NULL),
-(13, 16, 7, 4, 45.00, NULL),
-(14, 17, 5, 1, 45.00, NULL),
-(15, 17, 6, 2, 150.00, NULL),
-(16, 17, 8, 20, 150.00, NULL),
-(17, 17, 9, 3, 45.00, NULL),
-(18, 18, 8, 2, 150.00, NULL),
-(19, 19, 5, 12, 45.00, NULL),
-(20, 20, 1, 1, 45.00, NULL),
-(21, 21, 5, 4, 45.00, NULL),
-(22, 22, 7, 2, 45.00, NULL),
-(23, 23, 4, 1, 150.00, NULL),
-(24, 24, 1, 1, 45.00, NULL),
-(25, 24, 2, 2, 150.00, NULL),
-(26, 25, 3, 1, 45.00, NULL),
-(27, 26, 7, 3, 45.00, NULL),
-(28, 27, 7, 1, 45.00, NULL),
-(29, 28, 3, 1, 45.00, NULL),
-(30, 29, 9, 1, 45.00, NULL),
-(31, 29, 3, 1, 45.00, NULL),
-(32, 30, 7, 2, 45.00, NULL),
-(33, 30, 8, 2, 150.00, NULL),
-(34, 31, 5, 1, 45.00, NULL),
-(35, 32, 3, 4, 45.00, NULL),
-(36, 33, 16, 3, 41.00, 'Chispas de chocolate'),
-(37, 34, 17, 2, 45.00, 'Fresa'),
-(38, 35, 6, 2, 160.00, 'Fresa'),
-(39, 36, 6, 1, 150.00, NULL),
-(40, 37, 4, 1, 156.00, 'Chispas de chocolate'),
-(41, 38, 4, 1, 150.00, NULL),
-(42, 39, 4, 1, 150.00, NULL),
-(43, 40, 9, 2, 51.00, 'Chispas de chocolate'),
-(44, 40, 3, 1, 45.00, NULL),
-(45, 41, 1, 1, 45.00, NULL),
-(46, 42, 17, 1, 35.00, NULL),
-(47, 43, 5, 1, 45.00, NULL),
-(48, 44, 17, 1, 35.00, NULL),
-(49, 45, 6, 1, 150.00, NULL),
-(50, 46, 19, 1, 41.00, 'Chispas de chocolate'),
-(51, 47, 1, 1, 45.00, NULL),
-(52, 48, 5, 1, 51.00, 'Chispas de chocolate'),
-(53, 49, 4, 11, 156.00, 'Chispas de chocolate'),
-(54, 50, 4, 11, 166.00, 'Chispas de chocolate, Mango'),
-(55, 51, 20, 1, 45.00, NULL),
-(56, 52, 21, 10, 150.00, NULL),
-(57, 53, 21, 18, 150.00, NULL),
-(58, 54, 21, 26, 150.00, NULL);
+(1, 1, 1, 2, 45.00, NULL),
+(2, 1, 6, 1, 41.00, 'Chispas de chocolate'),
+(3, 2, 12, 2, 35.00, NULL),
+(4, 2, 15, 1, 35.00, NULL),
+(5, 3, 11, 1, 150.00, NULL),
+(6, 3, 7, 1, 55.00, 'Fresa natural picada'),
+(7, 4, 4, 2, 57.00, 'Nuez caramelizada'),
+(8, 5, 2, 1, 150.00, NULL),
+(9, 5, 3, 2, 35.00, NULL),
+(10, 6, 8, 1, 150.00, NULL),
+(11, 6, 9, 2, 35.00, NULL),
+(12, 7, 10, 2, 55.00, 'Mango en cubos'),
+(13, 8, 3, 2, 41.00, 'Chispas de chocolate'),
+(14, 8, 13, 1, 45.00, NULL),
+(15, 9, 5, 1, 150.00, NULL),
+(16, 9, 1, 1, 57.00, 'Nuez caramelizada'),
+(17, 10, 7, 2, 45.00, NULL),
+(18, 10, 6, 1, 35.00, NULL),
+(19, 11, 1, 2, 55.00, 'Fresa natural picada'),
+(20, 12, 12, 3, 35.00, NULL),
+(21, 13, 4, 2, 51.00, 'Chispas de chocolate'),
+(22, 13, 15, 1, 35.00, NULL),
+(23, 14, 2, 1, 150.00, NULL),
+(24, 14, 10, 2, 45.00, NULL),
+(25, 15, 5, 1, 156.00, 'Chispas de chocolate'),
+(26, 15, 9, 2, 35.00, NULL),
+(27, 16, 1, 2, 45.00, NULL),
+(28, 16, 15, 2, 35.00, NULL),
+(29, 17, 11, 1, 150.00, NULL),
+(30, 18, 7, 2, 55.00, 'Fresa natural picada'),
+(31, 19, 1, 2, 57.00, 'Nuez caramelizada'),
+(32, 19, 3, 1, 35.00, NULL),
+(33, 20, 6, 2, 35.00, NULL),
+(34, 20, 12, 2, 35.00, NULL),
+(35, 21, 8, 1, 150.00, NULL),
+(36, 21, 4, 2, 45.00, NULL),
+(37, 22, 10, 2, 55.00, 'Mango en cubos'),
+(38, 22, 15, 1, 35.00, NULL),
+(39, 23, 2, 1, 150.00, NULL),
+(40, 23, 9, 1, 35.00, NULL),
+(41, 24, 14, 1, 150.00, NULL),
+(42, 24, 1, 1, 45.00, NULL),
+(43, 25, 4, 2, 51.00, 'Chispas de chocolate'),
+(44, 25, 7, 1, 45.00, NULL),
+(45, 26, 1, 1, 57.00, 'Nuez caramelizada'),
+(46, 26, 12, 1, 35.00, NULL),
+(47, 27, 5, 2, 160.00, 'Fresa natural picada'),
+(48, 28, 13, 2, 55.00, 'Mango en cubos'),
+(49, 29, 8, 1, 160.00, 'Mango en cubos'),
+(50, 30, 9, 2, 35.00, NULL),
+(51, 31, 3, 1, 35.00, NULL),
+(52, 32, 9, 1, 45.00, 'Fresa natural picada'),
+(53, 33, 7, 1, 73.00, 'Mango en cubos, Nuez caramelizada, Chispas de chocolate'),
+(54, 34, 9, 2, 35.00, NULL),
+(55, 35, 7, 2, 45.00, NULL),
+(56, 35, 9, 2, 35.00, NULL),
+(57, 35, 8, 2, 150.00, NULL),
+(58, 36, 3, 27, 35.00, NULL),
+(59, 37, 8, 5, 150.00, NULL),
+(60, 37, 6, 20, 35.00, NULL),
+(61, 38, 6, 5, 35.00, NULL),
+(62, 39, 6, 8, 35.00, NULL),
+(63, 40, 3, 6, 35.00, NULL),
+(64, 41, 1, 1, 45.00, NULL),
+(65, 42, 4, 1, 45.00, NULL),
+(66, 43, 4, 10, 45.00, NULL),
+(67, 44, 5, 1, 160.00, 'Mango en cubos'),
+(68, 44, 5, 8, 156.00, 'Chispas de chocolate'),
+(69, 45, 4, 2, 55.00, 'Mango en cubos'),
+(70, 46, 4, 1, 55.00, 'Mango en cubos'),
+(71, 47, 4, 1, 61.00, 'Chispas de chocolate, Mango en cubos'),
+(72, 48, 1, 2, 55.00, 'Mango en cubos'),
+(73, 49, 5, 1, 150.00, NULL),
+(74, 50, 2, 1, 160.00, 'Mango en cubos'),
+(75, 50, 5, 1, 160.00, 'Mango en cubos'),
+(76, 51, 2, 3, 156.00, 'Chispas de chocolate'),
+(77, 52, 2, 2, 150.00, NULL),
+(78, 52, 14, 3, 188.00, 'Mango en cubos, Chispas de chocolate, Nuez caramelizada, Fresa natural picada');
 
 -- --------------------------------------------------------
 
@@ -180,20 +239,20 @@ CREATE TABLE `helados` (
   `sabor` varchar(50) NOT NULL,
   `nombre_comercial` varchar(80) NOT NULL,
   `tono` varchar(30) DEFAULT 'vanilla',
-  `imagen_url` text
+  `imagen_url` text,
+  `stock_litros` decimal(10,3) NOT NULL DEFAULT '0.000'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `helados`
 --
 
-INSERT INTO `helados` (`id`, `sabor`, `nombre_comercial`, `tono`, `imagen_url`) VALUES
-(1, 'Vainilla', 'Vainilla Nube', 'vanilla', 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?auto=format&fit=crop&w=400&q=80'),
-(2, 'Chocolate', 'Cacao Profundo', 'chocolate', 'https://images.unsplash.com/photo-1580915411954-282cb1b0d780?auto=format&fit=crop&w=400&q=80'),
-(3, 'Fresa', 'Fresa Nevada', 'strawberry', 'https://images.unsplash.com/photo-1505394033641-40c6ad1178d7?auto=format&fit=crop&w=400&q=80'),
-(4, 'Mango', 'Mango Solar', 'mango', 'https://sivarious.com/wp-content/uploads/2023/06/helado-de-mango-casero.jpg'),
-(5, 'Limón', 'Limón Glaciar', 'lime', 'https://images.unsplash.com/photo-1516559828984-fb3b99548b21?auto=format&fit=crop&w=400&q=80'),
-(8, 'Lang', 'LANGcarmineUWU', 'vanilla', '');
+INSERT INTO `helados` (`id`, `sabor`, `nombre_comercial`, `tono`, `imagen_url`, `stock_litros`) VALUES
+(1, 'Vainilla', 'Vainilla Nube', 'vanilla', 'http://localhost:5000/api/products/uploads/c432982afff441738e312b85eb3a8e10.png', 55.020),
+(2, 'Chocolate', 'Cacao Profundo', 'chocolate', 'http://localhost:5000/api/products/uploads/0393bc9737a642218a8052e0fd3d29c9.png', 5.450),
+(3, 'Fresa', 'Fresa Nevada', 'strawberry', 'http://localhost:5000/api/products/uploads/c867b89e1fae43229a75ae82a34eb427.png', 6.500),
+(4, 'Mango', 'Mango Solar', 'mango', 'http://localhost:5000/api/products/uploads/224bdcc5999b4a419650771850e7d541.png', 7.000),
+(5, 'Limón', 'Limón Glaciar', 'lemon', 'http://localhost:5000/api/products/uploads/0d58bce67f7a4a4782a69a337e53d5ab.png', 7.000);
 
 -- --------------------------------------------------------
 
@@ -217,14 +276,21 @@ CREATE TABLE `ingredientes` (
 --
 
 INSERT INTO `ingredientes` (`id`, `nombre`, `categoria`, `stock_actual`, `stock_minimo`, `unidad`, `costo_unitario`, `proveedor_id`) VALUES
-(1, 'Leche entera', 'Lácteos', 21.00, 10.00, 'L', 24.00, 1),
-(2, 'Crema para batir', 'Lácteos', 13.00, 8.00, 'L', 85.00, 1),
-(3, 'Azúcar', 'Secos', 15.00, 5.00, 'kg', 28.00, 3),
-(4, 'Cacao', 'Secos', 2.00, 4.00, 'kg', 190.00, 3),
-(5, 'Fresa natural', 'Fruta Natural', 15.00, 4.00, 'kg', 55.00, 2),
-(6, 'Mango ataulfo', 'Fruta Natural', 12.00, 3.00, 'kg', 48.00, 2),
-(7, 'Limón', 'Fruta Natural', 6.00, 3.00, 'kg', 32.00, 2),
-(8, 'Vainilla', 'Esencias', 4.00, 5.00, 'L', 210.00, 3);
+(1, 'Leche entera pasteurizada', 'Lácteos', 20.65, 6.00, 'L', 24.50, 1),
+(2, 'Crema para batir 35%', 'Lácteos', 21.95, 8.00, 'L', 86.00, 1),
+(3, 'Azúcar refinada', 'Secos', 35.60, 6.00, 'kg', 27.85, 3),
+(4, 'Cacao semiamargo en polvo', 'Secos', 6.50, 4.00, 'kg', 195.00, 4),
+(5, 'Fresa fresca seleccionada', 'Fruta Natural', 18.38, 5.00, 'kg', 56.00, 2),
+(6, 'Mango ataulfo maduro', 'Fruta Natural', 23.73, 4.00, 'kg', 49.00, 2),
+(7, 'Limón persa', 'Fruta Natural', 30.00, 3.00, 'kg', 32.00, 2),
+(8, 'Extracto natural de vainilla', 'Esencias', 6.27, 5.00, 'L', 214.99, 3),
+(11, 'Cono sencillo', 'Desechables', 85.00, 30.00, 'pza', 1.80, 5),
+(13, 'Vaso 8 oz', 'Desechables', 132.00, 40.00, 'pza', 1.60, 5),
+(17, 'Envase 1 L', 'Desechables', 31.00, 15.00, 'pza', 5.80, 5),
+(19, 'Cuchara para helado', 'Desechables', 213.00, 60.00, 'pza', 0.65, 5),
+(21, 'Agua purificada', 'Líquidos', 57.25, 10.00, 'L', 4.00, 1),
+(22, 'Nuez caramelizada', 'Toppings', 7.88, 1.00, 'kg', 144.98, 3),
+(23, 'Chispas de chocolate', 'Toppings', 3.72, 1.50, 'kg', 95.00, 4);
 
 -- --------------------------------------------------------
 
@@ -246,8 +312,78 @@ CREATE TABLE `movimientos_ingredientes` (
 --
 
 INSERT INTO `movimientos_ingredientes` (`id`, `ingrediente_id`, `tipo`, `cantidad`, `usuario_id`, `fecha`) VALUES
-(1, 4, 'Producción', -1.20, 1, '2026-11-17 16:01:56'),
-(2, 3, 'Producción', -1.00, 1, '2026-11-17 18:08:17');
+(1, 1, 'Entrada', 20.00, 1, '2026-11-16 08:45:00'),
+(2, 2, 'Entrada', 5.00, 1, '2026-11-16 08:45:00'),
+(3, 4, 'Producción', -1.50, 2, '2026-11-16 10:15:00'),
+(4, 6, 'Producción', -2.50, 2, '2026-11-17 09:30:00'),
+(5, 5, 'Merma', -0.80, 2, '2026-11-17 18:10:00'),
+(6, 11, 'Entrada', 100.00, 1, '2026-11-18 10:30:00'),
+(7, 13, 'Entrada', 150.00, 1, '2026-11-18 10:30:00'),
+(8, 17, 'Entrada', 50.00, 1, '2026-11-18 10:30:00'),
+(9, 19, 'Entrada', 200.00, 1, '2026-11-18 10:30:00'),
+(10, 8, 'Producción', -1.50, 2, '2026-11-18 11:00:00'),
+(11, 2, 'Producción', -1.00, 1, '2026-11-19 09:20:00'),
+(12, 6, 'Entrada', 10.00, 1, '2026-11-25 17:22:38'),
+(13, 1, 'Entrada', 10.00, 1, '2026-11-25 17:22:58'),
+(14, 1, 'Producción', -1.25, 1, '2026-11-25 17:23:49'),
+(15, 6, 'Producción', -1.25, 1, '2026-11-25 17:23:49'),
+(16, 7, 'Producción', -1.25, 1, '2026-11-25 17:23:49'),
+(17, 1, 'Producción', -3.75, 1, '2026-11-25 17:24:09'),
+(18, 6, 'Producción', -3.75, 1, '2026-11-25 17:24:09'),
+(19, 7, 'Producción', -3.75, 1, '2026-11-25 17:24:09'),
+(20, 1, 'Producción', -1.25, 1, '2026-11-25 17:24:14'),
+(21, 6, 'Producción', -1.25, 1, '2026-11-25 17:24:14'),
+(22, 7, 'Producción', -1.25, 1, '2026-11-25 17:24:14'),
+(23, 1, 'Producción', -21.50, 1, '2026-11-25 17:31:59'),
+(24, 2, 'Producción', -10.75, 1, '2026-11-25 17:31:59'),
+(25, 3, 'Producción', -7.74, 1, '2026-11-25 17:31:59'),
+(26, 8, 'Producción', -1.29, 1, '2026-11-25 17:31:59'),
+(27, 3, 'Producción', -0.66, 1, '2026-11-25 17:32:11'),
+(28, 7, 'Producción', -0.75, 1, '2026-11-25 17:32:11'),
+(29, 21, 'Producción', -1.65, 1, '2026-11-25 17:32:11'),
+(30, 1, 'Entrada', 20.00, 1, '2026-11-25 17:33:06'),
+(31, 2, 'Entrada', 20.00, 1, '2026-11-25 17:33:06'),
+(32, 21, 'Entrada', 20.00, 1, '2026-11-25 17:33:07'),
+(33, 5, 'Entrada', 10.00, 1, '2026-11-25 17:33:10'),
+(34, 6, 'Entrada', 8.00, 1, '2026-11-25 17:33:10'),
+(35, 3, 'Entrada', 20.00, 1, '2026-11-25 17:33:28'),
+(36, 3, 'Entrada', 10.00, 1, '2026-11-25 17:33:32'),
+(37, 7, 'Entrada', 30.00, 1, '2026-11-25 17:34:18');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ordenes_compra`
+--
+
+CREATE TABLE `ordenes_compra` (
+  `id` int NOT NULL,
+  `folio` varchar(25) NOT NULL,
+  `proveedor_id` int NOT NULL,
+  `usuario_id` int DEFAULT NULL,
+  `total` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `metodo_pago` varchar(40) NOT NULL DEFAULT 'Efectivo',
+  `estado` enum('Pendiente','Pagada','Cancelada') NOT NULL DEFAULT 'Pendiente',
+  `notas` varchar(255) DEFAULT NULL,
+  `fecha_orden` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_pago` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `ordenes_compra`
+--
+
+INSERT INTO `ordenes_compra` (`id`, `folio`, `proveedor_id`, `usuario_id`, `total`, `metodo_pago`, `estado`, `notas`, `fecha_orden`, `fecha_pago`) VALUES
+(1, '#OC-2101', 1, 1, 920.00, 'Efectivo', 'Pagada', 'Surtido semanal de lácteos frescos', '2026-11-16 08:30:00', '2026-11-16 08:45:00'),
+(2, '#OC-2102', 5, 1, 840.00, 'Transferencia', 'Pagada', 'Reposición de conos, vasos, envases y cucharas', '2026-11-18 10:15:00', '2026-11-18 10:30:00'),
+(3, '#OC-2103', 2, 2, 952.00, 'Efectivo', 'Pagada', 'Entrega de fruta fresca programada por la mañana', '2026-11-24 16:00:00', '2026-11-25 17:33:10'),
+(4, '#OC-1740', 2, 1, 490.00, 'Transferencia', 'Pagada', 'buenas', '2026-11-25 17:22:35', '2026-11-25 17:22:38'),
+(5, '#OC-4282', 1, 1, 245.00, 'Efectivo', 'Pagada', NULL, '2026-11-25 17:22:58', '2026-11-25 17:22:58'),
+(6, '#OC-2005', 1, 1, 2290.00, 'Efectivo', 'Pagada', NULL, '2026-11-25 17:33:06', '2026-11-25 17:33:07'),
+(7, '#OC-3714', 3, 1, 557.00, 'Efectivo', 'Pagada', NULL, '2026-11-25 17:33:28', '2026-11-25 17:33:28'),
+(8, '#OC-8168', 3, 1, 278.50, 'Efectivo', 'Pagada', NULL, '2026-11-25 17:33:32', '2026-11-25 17:33:32'),
+(9, '#OC-5739', 3, 1, 278.50, 'Efectivo', 'Cancelada', NULL, '2026-11-25 17:33:35', NULL),
+(10, '#OC-6993', 2, 1, 960.00, 'Efectivo', 'Pagada', NULL, '2026-11-25 17:34:18', '2026-11-25 17:34:18');
 
 -- --------------------------------------------------------
 
@@ -269,21 +405,58 @@ CREATE TABLE `pagos_simulados` (
 --
 
 INSERT INTO `pagos_simulados` (`id`, `pedido_id`, `metodo`, `monto`, `folio_pago`, `fecha`) VALUES
-(1, 1, 'Transferencia', 175.50, 'FP-9687198', '2026-11-17 15:59:23'),
-(2, 2, 'Transferencia', 175.50, 'FP-9278903', '2026-11-17 16:01:18'),
-(3, 3, 'Tarjeta simulada', 40.50, 'FP-9776256', '2026-11-17 17:22:26'),
-(4, 4, 'Transferencia', 297.00, 'FP-9238214', '2026-11-17 17:26:33'),
-(5, 5, 'Efectivo en sucursal', 255.00, 'FP-9093517', '2026-11-17 17:33:18'),
-(6, 45, 'Transferencia', 150.00, 'FP-4854772', '2026-11-19 00:50:50'),
-(7, 46, 'Tarjeta', 41.00, 'FP-3276131', '2026-11-19 00:51:04'),
-(8, 47, 'Tarjeta', 45.00, 'FP-9823628', '2026-11-19 00:51:25'),
-(9, 48, 'Transferencia', 51.00, 'FP-1810874', '2026-11-19 00:52:14'),
-(10, 49, 'Tarjeta', 1716.00, 'FP-3562932', '2026-11-19 00:53:34'),
-(11, 50, 'Tarjeta', 1826.00, 'FP-2993873', '2026-11-19 00:54:31'),
-(12, 51, 'Efectivo', 45.00, 'FP-3859966', '2026-11-19 01:06:35'),
-(13, 52, 'Efectivo', 1500.00, 'FP-7899219', '2026-11-19 01:06:58'),
-(14, 53, 'Efectivo', 2700.00, 'FP-6522534', '2026-11-19 01:07:31'),
-(15, 54, 'Efectivo', 3900.00, 'FP-7144362', '2026-11-19 16:37:55');
+(1, 1, 'Tarjeta', 131.00, 'FP-8810421', '2026-11-16 11:20:00'),
+(2, 2, 'Efectivo', 105.00, 'FP-8810590', '2026-11-16 13:15:00'),
+(3, 3, 'Transferencia', 184.50, 'FP-8810734', '2026-11-16 15:40:00'),
+(4, 4, 'Tarjeta', 114.00, 'FP-8810912', '2026-11-16 17:10:00'),
+(5, 5, 'Efectivo', 220.00, 'FP-8811105', '2026-11-16 19:05:00'),
+(6, 6, 'Transferencia', 220.00, 'FP-8820144', '2026-11-17 11:45:00'),
+(7, 7, 'Tarjeta', 110.00, 'FP-8820389', '2026-11-17 13:30:00'),
+(8, 8, 'Efectivo', 127.00, 'FP-8820510', '2026-11-17 15:12:00'),
+(9, 9, 'Tarjeta', 186.30, 'FP-8820778', '2026-11-17 16:50:00'),
+(10, 10, 'Tarjeta', 125.00, 'FP-8820901', '2026-11-17 18:20:00'),
+(11, 11, 'Transferencia', 110.00, 'FP-8821123', '2026-11-17 19:40:00'),
+(12, 12, 'Efectivo', 105.00, 'FP-8830190', '2026-11-18 11:10:00'),
+(13, 13, 'Tarjeta', 137.00, 'FP-8830412', '2026-11-18 12:55:00'),
+(14, 14, 'Transferencia', 216.00, 'FP-8830688', '2026-11-18 14:30:00'),
+(15, 15, 'Tarjeta', 226.00, 'FP-8830904', '2026-11-18 16:05:00'),
+(16, 16, 'Efectivo', 160.00, 'FP-8831150', '2026-11-18 17:25:00'),
+(17, 17, 'Tarjeta', 150.00, 'FP-8831399', '2026-11-18 18:45:00'),
+(18, 18, 'Efectivo', 110.00, 'FP-8831572', '2026-11-18 19:50:00'),
+(19, 19, 'Tarjeta', 149.00, 'FP-8840115', '2026-11-19 11:15:00'),
+(20, 20, 'Efectivo', 140.00, 'FP-8840340', '2026-11-19 12:30:00'),
+(21, 21, 'Transferencia', 216.00, 'FP-8840581', '2026-11-19 13:45:00'),
+(22, 22, 'Tarjeta', 145.00, 'FP-8840792', '2026-11-19 14:50:00'),
+(23, 23, 'Efectivo', 185.00, 'FP-8840966', '2026-11-19 15:35:00'),
+(24, 24, 'Tarjeta', 195.00, 'FP-8841180', '2026-11-19 16:10:00'),
+(25, 25, 'Transferencia', 147.00, 'FP-8841305', '2026-11-19 16:32:00'),
+(26, 26, 'Efectivo', 92.00, 'FP-8841490', '2026-11-19 16:48:00'),
+(27, 27, 'Efectivo', 320.00, 'FP-1966150', '2026-11-20 20:44:37'),
+(28, 28, 'Efectivo', 110.00, 'FP-2254054', '2026-11-24 17:42:10'),
+(29, 29, 'Efectivo', 160.00, 'FP-3081212', '2026-11-24 17:46:50'),
+(30, 30, 'Efectivo', 70.00, 'FP-9455084', '2026-11-24 17:47:49'),
+(31, 31, 'Efectivo', 31.50, 'FP-5234416', '2026-11-24 18:03:00'),
+(32, 32, 'Efectivo', 45.00, 'FP-6614660', '2026-11-24 18:03:52'),
+(33, 33, 'Efectivo', 65.70, 'FP-4965867', '2026-11-24 18:38:47'),
+(34, 34, 'Tarjeta', 70.00, 'FP-6299441', '2026-11-24 18:40:28'),
+(35, 35, 'Efectivo', 460.00, 'FP-5521046', '2026-11-24 18:42:47'),
+(36, 36, 'Efectivo', 945.00, 'FP-4621679', '2026-11-24 20:14:22'),
+(37, 37, 'Efectivo', 1450.00, 'FP-4122126', '2026-11-24 20:18:47'),
+(38, 38, 'Efectivo', 175.00, 'FP-6252177', '2026-11-24 20:24:07'),
+(39, 39, 'Efectivo', 280.00, 'FP-4951352', '2026-11-24 20:27:15'),
+(40, 40, 'Efectivo', 210.00, 'FP-9659762', '2026-11-24 20:27:37'),
+(41, 41, 'Efectivo', 45.00, 'FP-5534700', '2026-11-24 20:28:11'),
+(42, 42, 'Efectivo', 45.00, 'FP-9942412', '2026-11-24 20:28:47'),
+(43, 43, 'Efectivo', 450.00, 'FP-3329914', '2026-11-24 20:29:11'),
+(44, 44, 'Efectivo', 1408.00, 'FP-2299148', '2026-11-24 20:29:41'),
+(45, 45, 'Efectivo', 110.00, 'FP-4676881', '2026-11-24 20:30:09'),
+(46, 46, 'Efectivo', 55.00, 'FP-7562495', '2026-11-24 20:30:21'),
+(47, 47, 'Efectivo', 61.00, 'FP-7848667', '2026-11-24 20:34:06'),
+(48, 48, 'Efectivo', 110.00, 'FP-3710618', '2026-11-25 10:37:22'),
+(49, 49, 'Efectivo', 150.00, 'FP-3074943', '2026-11-25 10:44:05'),
+(50, 50, 'Efectivo', 320.00, 'FP-1787525', '2026-11-25 10:44:29'),
+(51, 51, 'Efectivo', 468.00, 'FP-7291563', '2026-11-25 10:45:48'),
+(52, 52, 'Efectivo', 864.00, 'FP-5972523', '2026-11-25 17:11:56');
 
 -- --------------------------------------------------------
 
@@ -309,60 +482,58 @@ CREATE TABLE `pedidos` (
 --
 
 INSERT INTO `pedidos` (`id`, `folio`, `cliente_id`, `cliente_nombre`, `subtotal`, `descuento`, `total`, `etapa`, `canal`, `fecha`) VALUES
-(1, '#FL-9561', 1, 'Christofer Dario', 195.00, 19.50, 175.50, 3, 'PWA', '2026-11-17 15:59:23'),
-(2, '#FL-5473', 1, 'Andrea Moreno', 195.00, 19.50, 175.50, 3, 'PWA', '2026-11-17 16:01:18'),
-(3, '#FL-6295', 1, 'Andrea Moreno', 45.00, 4.50, 40.50, 3, 'PWA', '2026-11-17 17:22:26'),
-(4, '#FL-5907', 1, 'Andrea Moreno', 330.00, 33.00, 297.00, 3, 'PWA', '2026-11-17 17:26:33'),
-(5, '#FL-3476', NULL, 'Venta de mostrador', 300.00, 45.00, 255.00, 3, 'Sucursal', '2026-11-17 17:33:18'),
-(6, '#FL-7682', NULL, 'Venta de mostrador', 645.00, 96.75, 548.25, 3, 'Sucursal', '2026-11-17 17:43:30'),
-(7, '#FL-8134', NULL, 'Venta de mostrador', 645.00, 96.75, 548.25, 3, 'Sucursal', '2026-11-17 17:44:05'),
-(8, '#FL-9192', NULL, 'Venta de mostrador', 645.00, 96.75, 548.25, 3, 'Sucursal', '2026-11-17 17:44:12'),
-(9, '#FL-8003', NULL, 'Venta de mostrador', 645.00, 96.75, 548.25, 3, 'Sucursal', '2026-11-17 17:44:16'),
-(10, '#FL-9155', NULL, 'Venta de mostrador', 645.00, 96.75, 548.25, 3, 'Sucursal', '2026-11-17 17:44:22'),
-(11, '#FL-3038', NULL, 'Venta de mostrador', 645.00, 96.75, 548.25, 3, 'Sucursal', '2026-11-17 17:44:54'),
-(12, '#FL-8749', 24, 'manlo', 645.00, 0.00, 645.00, 3, 'PWA', '2026-11-17 17:50:38'),
-(13, '#FL-8232', 24, 'manlo', 225.00, 22.50, 202.50, 3, 'PWA', '2026-11-17 17:50:59'),
-(14, '#FL-3399', 25, 'Andrea Moreno', 180.00, 0.00, 180.00, 3, 'PWA', '2026-11-17 18:00:37'),
-(15, '#FL-1664', 25, 'Andrea Moreno', 180.00, 0.00, 180.00, 3, 'PWA', '2026-11-17 18:00:39'),
-(16, '#FL-3450', 25, 'Andrea Moreno', 180.00, 0.00, 180.00, 3, 'PWA', '2026-11-17 18:00:51'),
-(17, '#FL-3206', 25, 'Andrea Moreno', 3480.00, 0.00, 3480.00, 3, 'PWA', '2026-11-17 18:02:27'),
-(18, '#FL-6381', 25, 'Andrea Moreno', 300.00, 0.00, 300.00, 3, 'PWA', '2026-11-17 18:02:46'),
-(19, '#FL-4091', 25, 'Andrea Moreno', 540.00, 0.00, 540.00, 3, 'PWA', '2026-11-17 18:06:37'),
-(20, '#FL-8792', 25, 'Andrea Moreno', 45.00, 0.00, 45.00, 3, 'PWA', '2026-11-17 18:11:14'),
-(21, '#FL-2487', 25, 'Andrea Moreno', 180.00, 0.00, 180.00, 3, 'PWA', '2026-11-17 18:39:45'),
-(22, '#FL-3603', 25, 'Andrea Moreno', 90.00, 0.00, 90.00, 3, 'PWA', '2026-11-17 18:40:42'),
-(23, '#FL-8528', 64, 'Venta de mostrador', 150.00, 0.00, 150.00, 3, 'Sucursal', '2026-11-17 18:41:44'),
-(24, '#FL-6824', 64, 'Venta de mostrador', 345.00, 51.75, 293.25, 3, 'Sucursal', '2026-11-17 18:41:59'),
-(25, '#FL-7993', 25, 'Andrea Moreno', 45.00, 0.00, 45.00, 3, 'PWA', '2026-11-17 18:42:19'),
-(26, '#FL-8678', 25, 'Andrea Moreno', 135.00, 0.00, 135.00, 3, 'PWA', '2026-11-17 18:43:17'),
-(27, '#FL-8202', 25, 'Andrea Moreno', 45.00, 0.00, 45.00, 3, 'PWA', '2026-11-17 18:43:51'),
-(28, '#FL-6617', 64, 'Venta de mostrador', 45.00, 0.00, 45.00, 3, 'Sucursal', '2026-11-17 19:34:49'),
-(29, '#FL-9105', 64, 'Venta de mostrador', 90.00, 9.00, 81.00, 3, 'Sucursal', '2026-11-18 09:59:12'),
-(30, '#FL-5941', 25, 'Andrea Moreno', 390.00, 0.00, 390.00, 3, 'PWA', '2026-11-18 09:59:43'),
-(31, '#FL-9391', 25, 'Andrea Moreno', 45.00, 0.00, 45.00, 3, 'PWA', '2026-11-18 10:31:25'),
-(32, '#FL-2858', 64, 'Venta de mostrador', 180.00, 18.00, 162.00, 3, 'Sucursal', '2026-11-18 17:59:27'),
-(33, '#FL-3678', 25, 'Andrea Moreno', 123.00, 0.00, 123.00, 3, 'PWA', '2026-11-18 19:10:48'),
-(34, '#FL-4996', 64, 'Venta de mostrador', 90.00, 0.00, 90.00, 3, 'Sucursal', '2026-11-18 19:11:41'),
-(35, '#FL-4565', 25, 'Andrea Moreno', 320.00, 0.00, 320.00, 3, 'PWA', '2026-11-18 19:49:22'),
-(36, '#FL-8765', 25, 'Andrea Moreno', 150.00, 0.00, 150.00, 3, 'PWA', '2026-11-18 19:50:40'),
-(37, '#FL-5364', 25, 'Andrea Moreno', 156.00, 0.00, 156.00, 3, 'PWA', '2026-11-18 23:03:34'),
-(38, '#FL-6763', 25, 'Andrea Moreno', 150.00, 0.00, 150.00, 3, 'PWA', '2026-11-18 23:05:08'),
-(39, '#FL-2321', 25, 'Andrea Moreno', 150.00, 0.00, 150.00, 3, 'PWA', '2026-11-18 23:05:37'),
-(40, '#FL-5520', 25, 'Andrea Moreno', 147.00, 0.00, 147.00, 3, 'PWA', '2026-11-19 00:42:45'),
-(41, '#FL-1657', 25, 'Andrea Moreno', 45.00, 0.00, 45.00, 3, 'PWA', '2026-11-19 00:43:02'),
-(42, '#FL-1998', 25, 'Andrea Moreno', 35.00, 0.00, 35.00, 3, 'PWA', '2026-11-19 00:43:17'),
-(43, '#FL-7373', 64, 'Venta de mostrador', 45.00, 0.00, 45.00, 3, 'Sucursal', '2026-11-19 00:44:37'),
-(44, '#FL-4498', 64, 'Venta de mostrador', 35.00, 0.00, 35.00, 3, 'Sucursal', '2026-11-19 00:44:49'),
-(45, '#FL-6345', 25, 'Andrea Moreno', 150.00, 0.00, 150.00, 3, 'PWA', '2026-11-19 00:50:50'),
-(46, '#FL-2669', 25, 'Andrea Moreno', 41.00, 0.00, 41.00, 3, 'PWA', '2026-11-19 00:51:04'),
-(47, '#FL-6447', 25, 'Andrea Moreno', 45.00, 0.00, 45.00, 3, 'PWA', '2026-11-19 00:51:25'),
-(48, '#FL-4775', 25, 'Andrea Moreno', 51.00, 0.00, 51.00, 3, 'PWA', '2026-11-19 00:52:14'),
-(49, '#FL-7628', 25, 'Andrea Moreno', 1716.00, 0.00, 1716.00, 3, 'PWA', '2026-11-19 00:53:34'),
-(50, '#FL-3008', 25, 'Andrea Moreno', 1826.00, 0.00, 1826.00, 3, 'PWA', '2026-11-19 00:54:31'),
-(51, '#FL-3722', 25, 'Andrea Moreno', 45.00, 0.00, 45.00, 0, 'PWA', '2026-11-19 01:06:35'),
-(52, '#FL-4085', 25, 'Andrea Moreno', 1500.00, 0.00, 1500.00, 0, 'PWA', '2026-11-19 01:06:58'),
-(53, '#FL-1308', 25, 'Andrea Moreno', 2700.00, 0.00, 2700.00, 0, 'PWA', '2026-11-19 01:07:31'),
-(54, '#FL-4588', 25, 'Andrea Moreno', 3900.00, 0.00, 3900.00, 0, 'PWA', '2026-11-19 16:37:55');
+(1, '#FL-4101', 2, 'Mariana López', 131.00, 0.00, 131.00, 3, 'PWA', '2026-11-16 11:20:00'),
+(2, '#FL-4102', 1, 'Venta de mostrador', 105.00, 0.00, 105.00, 3, 'Sucursal', '2026-11-16 13:15:00'),
+(3, '#FL-4103', 3, 'Jorge Ávila', 205.00, 20.50, 184.50, 3, 'PWA', '2026-11-16 15:40:00'),
+(4, '#FL-4104', 4, 'Sofía Herrera', 114.00, 0.00, 114.00, 3, 'PWA', '2026-11-16 17:10:00'),
+(5, '#FL-4105', 1, 'Venta de mostrador', 220.00, 0.00, 220.00, 3, 'Sucursal', '2026-11-16 19:05:00'),
+(6, '#FL-4106', 5, 'Carlos Mendoza', 220.00, 0.00, 220.00, 3, 'PWA', '2026-11-17 11:45:00'),
+(7, '#FL-4107', 6, 'Valeria Ortega', 110.00, 0.00, 110.00, 3, 'PWA', '2026-11-17 13:30:00'),
+(8, '#FL-4108', 1, 'Venta de mostrador', 127.00, 0.00, 127.00, 3, 'Sucursal', '2026-11-17 15:12:00'),
+(9, '#FL-4109', 2, 'Mariana López', 207.00, 20.70, 186.30, 3, 'PWA', '2026-11-17 16:50:00'),
+(10, '#FL-4110', 7, 'Diego Ramírez', 125.00, 0.00, 125.00, 3, 'PWA', '2026-11-17 18:20:00'),
+(11, '#FL-4111', 8, 'Fernanda Castro', 110.00, 0.00, 110.00, 3, 'PWA', '2026-11-17 19:40:00'),
+(12, '#FL-4112', 1, 'Venta de mostrador', 105.00, 0.00, 105.00, 3, 'Sucursal', '2026-11-18 11:10:00'),
+(13, '#FL-4113', 3, 'Jorge Ávila', 137.00, 0.00, 137.00, 3, 'PWA', '2026-11-18 12:55:00'),
+(14, '#FL-4114', 4, 'Sofía Herrera', 240.00, 24.00, 216.00, 3, 'PWA', '2026-11-18 14:30:00'),
+(15, '#FL-4115', 9, 'Christofer Dario', 226.00, 0.00, 226.00, 3, 'PWA', '2026-11-18 16:05:00'),
+(16, '#FL-4116', 1, 'Venta de mostrador', 160.00, 0.00, 160.00, 3, 'Sucursal', '2026-11-18 17:25:00'),
+(17, '#FL-4117', 5, 'Carlos Mendoza', 150.00, 0.00, 150.00, 3, 'PWA', '2026-11-18 18:45:00'),
+(18, '#FL-4118', 6, 'Valeria Ortega', 110.00, 0.00, 110.00, 3, 'PWA', '2026-11-18 19:50:00'),
+(19, '#FL-4119', 2, 'Mariana López', 149.00, 0.00, 149.00, 3, 'PWA', '2026-11-19 11:15:00'),
+(20, '#FL-4120', 1, 'Venta de mostrador', 140.00, 0.00, 140.00, 3, 'Sucursal', '2026-11-19 12:30:00'),
+(21, '#FL-4121', 7, 'Diego Ramírez', 240.00, 24.00, 216.00, 3, 'PWA', '2026-11-19 13:45:00'),
+(22, '#FL-4122', 4, 'Sofía Herrera', 145.00, 0.00, 145.00, 2, 'PWA', '2026-11-19 14:50:00'),
+(23, '#FL-4123', 1, 'Venta de mostrador', 185.00, 0.00, 185.00, 2, 'Sucursal', '2026-11-19 15:35:00'),
+(24, '#FL-4124', 3, 'Jorge Ávila', 195.00, 0.00, 195.00, 1, 'PWA', '2026-11-19 16:10:00'),
+(25, '#FL-4125', 5, 'Carlos Mendoza', 147.00, 0.00, 147.00, 1, 'PWA', '2026-11-19 16:32:00'),
+(26, '#FL-4126', 2, 'Mariana López', 92.00, 0.00, 92.00, 0, 'PWA', '2026-11-19 16:48:00'),
+(27, '#FL-1107', 10, 'Andrea Moreno', 320.00, 0.00, 320.00, 3, 'PWA', '2026-11-20 20:44:37'),
+(28, '#FL-3537', 11, 'Cliente Web', 110.00, 0.00, 110.00, 0, 'PWA', '2026-11-24 17:42:10'),
+(29, '#FL-5775', 12, 'Pablo Reyes', 160.00, 0.00, 160.00, 0, 'PWA', '2026-11-24 17:46:50'),
+(30, '#FL-5592', 1, 'Venta de mostrador', 70.00, 0.00, 70.00, 3, 'Sucursal', '2026-11-24 17:47:48'),
+(31, '#FL-7024', 10, 'Andrea Moreno', 35.00, 3.50, 31.50, 2, 'PWA', '2026-11-24 18:03:00'),
+(32, '#FL-6195', 10, 'Andrea Moreno', 45.00, 0.00, 45.00, 0, 'PWA', '2026-11-24 18:03:52'),
+(33, '#FL-3198', 14, 'Christofer Dario', 73.00, 7.30, 65.70, 0, 'PWA', '2026-11-24 18:38:47'),
+(34, '#FL-9883', 1, 'Venta de mostrador', 70.00, 0.00, 70.00, 3, 'Sucursal', '2026-11-24 18:40:28'),
+(35, '#FL-9732', 1, 'Venta de mostrador', 460.00, 0.00, 460.00, 3, 'Sucursal', '2026-11-24 18:42:47'),
+(36, '#FL-6768', 1, 'Venta de mostrador', 945.00, 0.00, 945.00, 3, 'Sucursal', '2026-11-24 20:14:22'),
+(37, '#FL-3614', 1, 'Venta de mostrador', 1450.00, 0.00, 1450.00, 3, 'Sucursal', '2026-11-24 20:18:47'),
+(38, '#FL-3626', 1, 'Venta de mostrador', 175.00, 0.00, 175.00, 3, 'Sucursal', '2026-11-24 20:24:07'),
+(39, '#FL-6962', 1, 'Venta de mostrador', 280.00, 0.00, 280.00, 3, 'Sucursal', '2026-11-24 20:27:15'),
+(40, '#FL-3219', 1, 'Venta de mostrador', 210.00, 0.00, 210.00, 3, 'Sucursal', '2026-11-24 20:27:37'),
+(41, '#FL-4032', 10, 'Andrea Moreno', 45.00, 0.00, 45.00, 0, 'PWA', '2026-11-24 20:28:11'),
+(42, '#FL-1904', 10, 'Andrea Moreno', 45.00, 0.00, 45.00, 0, 'PWA', '2026-11-24 20:28:47'),
+(43, '#FL-9648', 1, 'Venta de mostrador', 450.00, 0.00, 450.00, 3, 'Sucursal', '2026-11-24 20:29:11'),
+(44, '#FL-1413', 1, 'Venta de mostrador', 1408.00, 0.00, 1408.00, 3, 'Sucursal', '2026-11-24 20:29:41'),
+(45, '#FL-4703', 1, 'Venta de mostrador', 110.00, 0.00, 110.00, 3, 'Sucursal', '2026-11-24 20:30:09'),
+(46, '#FL-2044', 1, 'Venta de mostrador', 55.00, 0.00, 55.00, 3, 'Sucursal', '2026-11-24 20:30:21'),
+(47, '#FL-7746', 1, 'Venta de mostrador', 61.00, 0.00, 61.00, 3, 'Sucursal', '2026-11-24 20:34:06'),
+(48, '#FL-2490', 10, 'Andrea Moreno', 110.00, 0.00, 110.00, 0, 'PWA', '2026-11-25 10:37:22'),
+(49, '#FL-3580', 1, 'Venta de mostrador', 150.00, 0.00, 150.00, 3, 'Sucursal', '2026-11-25 10:44:05'),
+(50, '#FL-8738', 10, 'Andrea Moreno', 320.00, 0.00, 320.00, 0, 'PWA', '2026-11-25 10:44:29'),
+(51, '#FL-4616', 10, 'Andrea Moreno', 468.00, 0.00, 468.00, 0, 'PWA', '2026-11-25 10:45:48'),
+(52, '#FL-3361', 14, 'Christofer Dario', 864.00, 0.00, 864.00, 0, 'PWA', '2026-11-25 17:11:56');
 
 -- --------------------------------------------------------
 
@@ -373,17 +544,24 @@ INSERT INTO `pedidos` (`id`, `folio`, `cliente_id`, `cliente_nombre`, `subtotal`
 CREATE TABLE `presentaciones` (
   `id` int NOT NULL,
   `nombre` varchar(50) NOT NULL,
-  `precio` decimal(10,2) NOT NULL
+  `precio` decimal(10,2) NOT NULL,
+  `imagen_url` text,
+  `litros_consumidos` decimal(10,3) NOT NULL DEFAULT '0.240',
+  `empaque_ingrediente_id` int DEFAULT NULL,
+  `empaque_cantidad` decimal(10,2) NOT NULL DEFAULT '1.00',
+  `cuchara_ingrediente_id` int DEFAULT NULL,
+  `cuchara_cantidad` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `ingrediente_desechable_id` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `presentaciones`
 --
 
-INSERT INTO `presentaciones` (`id`, `nombre`, `precio`) VALUES
-(1, 'Vaso 8 oz', 45.00),
-(2, 'Litro', 150.00),
-(3, 'Cono', 35.00);
+INSERT INTO `presentaciones` (`id`, `nombre`, `precio`, `imagen_url`, `litros_consumidos`, `empaque_ingrediente_id`, `empaque_cantidad`, `cuchara_ingrediente_id`, `cuchara_cantidad`, `ingrediente_desechable_id`) VALUES
+(1, 'Vaso 8 oz', 45.00, 'http://localhost:5000/api/presentations/uploads/c2ee8c46bca2426296a1fceb16d16d57.png', 0.240, 13, 1.00, 19, 1.00, 13),
+(2, 'Litro', 150.00, 'http://localhost:5000/api/presentations/uploads/303563798b7844b6954afeb220bb4480.png', 1.000, 17, 1.00, 19, 0.00, 17),
+(3, 'Cono', 35.00, 'http://localhost:5000/api/presentations/uploads/e754061298534eb386ac6e3685cee838.png', 0.150, 11, 1.00, NULL, 0.00, 11);
 
 -- --------------------------------------------------------
 
@@ -404,24 +582,21 @@ CREATE TABLE `productos` (
 --
 
 INSERT INTO `productos` (`id`, `helado_id`, `presentacion_id`, `stock`, `activo`) VALUES
-(1, 1, 1, 20, 1),
-(2, 1, 2, 6, 1),
-(3, 2, 1, 6, 1),
-(4, 2, 2, 8, 1),
-(5, 3, 1, 2, 1),
-(6, 3, 2, 12, 1),
-(7, 4, 1, 9, 1),
-(8, 4, 2, 12, 1),
-(9, 5, 1, 4, 1),
-(10, 5, 2, 3, 1),
-(15, 1, 3, 10, 1),
-(16, 2, 3, 7, 1),
-(17, 3, 3, 6, 1),
-(18, 4, 3, 10, 1),
-(19, 5, 3, 9, 1),
-(20, 8, 1, 0, 0),
-(21, 8, 2, 0, 0),
-(22, 8, 3, 0, 0);
+(1, 1, 1, 132, 1),
+(2, 1, 2, 31, 1),
+(3, 1, 3, 85, 1),
+(4, 2, 1, 22, 1),
+(5, 2, 2, 5, 1),
+(6, 2, 3, 36, 1),
+(7, 3, 1, 27, 1),
+(8, 3, 2, 6, 1),
+(9, 3, 3, 43, 1),
+(10, 4, 1, 29, 1),
+(11, 4, 2, 7, 1),
+(12, 4, 3, 46, 1),
+(13, 5, 1, 29, 1),
+(14, 5, 2, 7, 1),
+(15, 5, 3, 46, 1);
 
 -- --------------------------------------------------------
 
@@ -441,10 +616,49 @@ CREATE TABLE `proveedores` (
 --
 
 INSERT INTO `proveedores` (`id`, `nombre`, `contacto`, `telefono`) VALUES
-(1, 'Lácteos Lactozos', 'Emanuel Valtierra', '123456789'),
-(2, 'Verdulería Valeria', 'Carlos Trejo', '987654321'),
-(3, 'PrimaPrimos', 'Trevol CJ', '6622789123'),
-(4, 'Toppings-Springs', 'William', '2232233432');
+(1, 'Lácteos del Bajío S.A.', 'Héctor Ramírez', '477 714 8820'),
+(2, 'Frutas Selectas de Irapuato', 'Valeria Solís', '462 625 3410'),
+(3, 'Esencias y Secos Artesanales', 'Mariana Domínguez', '477 390 1145'),
+(4, 'Chocolatería y Confitería Finos', 'Roberto Castellanos', '477 512 9084'),
+(5, 'Empaques y Conos del Bajío', 'Sofía Valenzuela', '477 628 4910');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `recetas_helado`
+--
+
+CREATE TABLE `recetas_helado` (
+  `id` int NOT NULL,
+  `helado_id` int NOT NULL,
+  `ingrediente_id` int NOT NULL,
+  `cantidad_por_litro` decimal(10,3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `recetas_helado`
+--
+
+INSERT INTO `recetas_helado` (`id`, `helado_id`, `ingrediente_id`, `cantidad_por_litro`) VALUES
+(1, 1, 1, 0.500),
+(2, 1, 2, 0.250),
+(3, 1, 3, 0.180),
+(4, 1, 8, 0.030),
+(5, 2, 1, 0.500),
+(6, 2, 2, 0.250),
+(7, 2, 3, 0.200),
+(8, 2, 4, 0.120),
+(9, 3, 1, 0.400),
+(10, 3, 2, 0.200),
+(11, 3, 3, 0.180),
+(12, 3, 5, 0.300),
+(13, 4, 1, 0.350),
+(14, 4, 2, 0.150),
+(15, 4, 3, 0.160),
+(16, 4, 6, 0.350),
+(17, 5, 21, 0.550),
+(18, 5, 3, 0.220),
+(19, 5, 7, 0.250);
 
 -- --------------------------------------------------------
 
@@ -466,10 +680,12 @@ CREATE TABLE `resenas` (
 --
 
 INSERT INTO `resenas` (`id`, `cliente_nombre`, `calificacion`, `comentario`, `respuesta`, `fecha`) VALUES
-(1, 'Mariana López', 5, 'El helado de vainilla sabe realmente artesanal. Cremoso, fresco y la atención fue increíble.', 'Gracias tilin!!!', '2026-11-17 13:10:00'),
-(2, 'Jorge Ávila', 5, 'Mango Solar es mi nuevo favorito. El pedido estuvo listo antes de lo esperado.', NULL, '2026-11-17 13:10:00'),
-(3, 'Sofía Herrera', 5, 'Me encantó el empaque y poder seguir mi pedido en tiempo real.', NULL, '2026-11-17 13:10:00'),
-(4, 'LANGcarmineUWU', 4, 'Muy buenos heladitos, me encantó el floe', 'olaa', '2026-11-17 16:20:49');
+(1, 'Roberto Cardiel', 5, 'El helado de Vainilla Nube tiene una textura súper cremosa y natural. Siempre pido por la app y llega puntual.', 'Muchas gracias Cardiel, nos alegra muchísimo que disfrutes nuestros sabores artesanales.', '2026-11-16 12:15:00'),
+(2, 'Jaime Ávila', 5, 'Mango Solar con fruta natural es mi nuevo favorito para la tarde. Excelente presentación de litro.', 'Gracias Jaime, te esperamos pronto por otro litro de Mango Solar.', '2026-11-16 17:05:00'),
+(3, 'Benito Canelo', 5, 'Me encanta poder seguir en vivo en qué etapa va mi pedido y recogerlo sin hacer fila.', 'Qué gusto leer eso Beni, trabajamos para que tu experiencia sea rápida y fresca.', '2026-11-17 10:30:00'),
+(4, 'Roberto Soria', 4, 'Muy buen sabor en Cacao Profundo y Fresa Nevada. El cono llegó súper crujiente.', NULL, '2026-11-18 19:20:00'),
+(5, 'Dafne Zambrano', 5, 'El sabor Vainilla Nube con nuez caramelizada está espectacular, súper recomendado.', NULL, '2026-11-19 12:40:00'),
+(7, 'Alan Barut', 5, 'Muy buenos', NULL, '2026-11-24 18:19:12');
 
 -- --------------------------------------------------------
 
@@ -506,17 +722,20 @@ CREATE TABLE `toppings` (
   `precio` decimal(10,2) NOT NULL DEFAULT '10.00',
   `stock` int NOT NULL DEFAULT '20',
   `proveedor_id` int DEFAULT NULL,
-  `activo` tinyint(1) NOT NULL DEFAULT '1'
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `ingrediente_id` int DEFAULT NULL,
+  `cantidad_por_porcion` decimal(10,3) NOT NULL DEFAULT '0.040'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `toppings`
 --
 
-INSERT INTO `toppings` (`id`, `nombre`, `precio`, `stock`, `proveedor_id`, `activo`) VALUES
-(1, 'Chispas de chocolate', 6.00, 0, 4, 1),
-(2, 'Fresa', 10.00, 21, 2, 1),
-(3, 'Mango', 10.00, 14, 2, 1);
+INSERT INTO `toppings` (`id`, `nombre`, `precio`, `stock`, `proveedor_id`, `activo`, `ingrediente_id`, `cantidad_por_porcion`) VALUES
+(1, 'Chispas de chocolate', 6.00, 93, 4, 1, 23, 0.040),
+(2, 'Fresa natural picada', 10.00, 459, 2, 1, 5, 0.040),
+(3, 'Mango en cubos', 10.00, 593, 2, 1, 6, 0.040),
+(4, 'Nuez caramelizada', 12.00, 197, 4, 1, 22, 0.040);
 
 -- --------------------------------------------------------
 
@@ -539,13 +758,15 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nombre`, `correo`, `password_hash`, `rol_id`, `activo`, `ultimo_acceso`) VALUES
-(1, 'Andrea Moreno', 'andrea@floamy.mx', 'floamy2025', 1, 1, '2026-11-17 16:09:10'),
-(2, 'Pablo Reyes', 'pablo@floamy.mx', 'floamy2025', 3, 1, '2026-11-17 13:10:00'),
-(3, 'Lucía García', 'lucia@floamy.mx', 'floamy2025', 2, 1, '2026-11-17 13:10:00'),
-(4, 'LANGcarmineUWU', 'langcarmine916@gmail.com', 'floamy2025', 1, 1, '2026-11-17 16:10:06'),
-(5, 'aa', 'langostacarmine@gmail.com', 'Contrest123', 4, 1, '2026-11-17 17:43:48'),
-(6, 'Christofer Dario', 'ine@gmail.com', 'Contrest123', 4, 1, '2026-11-17 17:47:28'),
-(7, 'manlo', 'line@gmail.com', 'Contrest123', 4, 1, '2026-11-17 17:48:36');
+(1, 'Andrea Moreno', 'andrea@floamy.mx', 'floamy2025', 1, 1, '2026-11-19 09:00:00'),
+(2, 'Pablo Reyes', 'pablo@floamy.mx', 'floamy2025', 3, 1, '2026-11-19 08:30:00'),
+(3, 'Lucía García', 'lucia@floamy.mx', 'floamy2025', 2, 1, '2026-11-19 10:15:00'),
+(4, 'Christofer Dario', 'christofer@floamy.mx', 'Contrest123', 1, 1, '2026-11-19 14:20:00'),
+(5, 'Mariana López', 'mariana.lopez@correo.mx', 'Cliente123', 4, 1, '2026-11-19 16:45:00'),
+(6, 'Jorge Ávila', 'jorge.avila@correo.mx', 'Cliente123', 4, 1, '2026-11-19 16:08:00'),
+(7, 'Sofía Herrera', 'sofia.herrera@correo.mx', 'Cliente123', 4, 1, '2026-11-19 14:48:00'),
+(8, 'Christofer Dario', 'lang@floamy.mx', '1234567890', 4, 1, '2026-11-24 18:05:07'),
+(9, 'Christofer Dario', 'pablo@gmail.mx', 'dario123', 4, 1, '2026-11-24 18:37:38');
 
 --
 -- Indexes for dumped tables
@@ -563,6 +784,14 @@ ALTER TABLE `clientes`
 --
 ALTER TABLE `cortes_caja`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `detalle_compra`
+--
+ALTER TABLE `detalle_compra`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_dc_orden` (`orden_id`),
+  ADD KEY `fk_dc_ingrediente` (`ingrediente_id`);
 
 --
 -- Indexes for table `detalle_pedido`
@@ -592,6 +821,15 @@ ALTER TABLE `movimientos_ingredientes`
   ADD PRIMARY KEY (`id`),
   ADD KEY `ingrediente_id` (`ingrediente_id`),
   ADD KEY `usuario_id` (`usuario_id`);
+
+--
+-- Indexes for table `ordenes_compra`
+--
+ALTER TABLE `ordenes_compra`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_oc_folio` (`folio`),
+  ADD KEY `fk_oc_proveedor` (`proveedor_id`),
+  ADD KEY `fk_oc_usuario` (`usuario_id`);
 
 --
 -- Indexes for table `pagos_simulados`
@@ -629,6 +867,14 @@ ALTER TABLE `proveedores`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `recetas_helado`
+--
+ALTER TABLE `recetas_helado`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_helado_ing` (`helado_id`,`ingrediente_id`),
+  ADD KEY `fk_receta_ingrediente` (`ingrediente_id`);
+
+--
 -- Indexes for table `resenas`
 --
 ALTER TABLE `resenas`
@@ -664,95 +910,120 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT for table `clientes`
 --
 ALTER TABLE `clientes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `cortes_caja`
 --
 ALTER TABLE `cortes_caja`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `detalle_compra`
+--
+ALTER TABLE `detalle_compra`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `detalle_pedido`
 --
 ALTER TABLE `detalle_pedido`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- AUTO_INCREMENT for table `helados`
 --
 ALTER TABLE `helados`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `ingredientes`
 --
 ALTER TABLE `ingredientes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `movimientos_ingredientes`
 --
 ALTER TABLE `movimientos_ingredientes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+
+--
+-- AUTO_INCREMENT for table `ordenes_compra`
+--
+ALTER TABLE `ordenes_compra`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `pagos_simulados`
 --
 ALTER TABLE `pagos_simulados`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `pedidos`
 --
 ALTER TABLE `pedidos`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `presentaciones`
 --
 ALTER TABLE `presentaciones`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `proveedores`
 --
 ALTER TABLE `proveedores`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `recetas_helado`
+--
+ALTER TABLE `recetas_helado`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `resenas`
 --
 ALTER TABLE `resenas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `toppings`
 --
 ALTER TABLE `toppings`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `detalle_compra`
+--
+ALTER TABLE `detalle_compra`
+  ADD CONSTRAINT `fk_dc_ingrediente` FOREIGN KEY (`ingrediente_id`) REFERENCES `ingredientes` (`id`),
+  ADD CONSTRAINT `fk_dc_orden` FOREIGN KEY (`orden_id`) REFERENCES `ordenes_compra` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `detalle_pedido`
@@ -775,6 +1046,13 @@ ALTER TABLE `movimientos_ingredientes`
   ADD CONSTRAINT `movimientos_ingredientes_ibfk_2` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`);
 
 --
+-- Constraints for table `ordenes_compra`
+--
+ALTER TABLE `ordenes_compra`
+  ADD CONSTRAINT `fk_oc_proveedor` FOREIGN KEY (`proveedor_id`) REFERENCES `proveedores` (`id`),
+  ADD CONSTRAINT `fk_oc_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+
+--
 -- Constraints for table `pagos_simulados`
 --
 ALTER TABLE `pagos_simulados`
@@ -792,6 +1070,13 @@ ALTER TABLE `pedidos`
 ALTER TABLE `productos`
   ADD CONSTRAINT `productos_ibfk_1` FOREIGN KEY (`helado_id`) REFERENCES `helados` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `productos_ibfk_2` FOREIGN KEY (`presentacion_id`) REFERENCES `presentaciones` (`id`);
+
+--
+-- Constraints for table `recetas_helado`
+--
+ALTER TABLE `recetas_helado`
+  ADD CONSTRAINT `fk_receta_helado` FOREIGN KEY (`helado_id`) REFERENCES `helados` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_receta_ingrediente` FOREIGN KEY (`ingrediente_id`) REFERENCES `ingredientes` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `toppings`
