@@ -1,4 +1,5 @@
 import json
+from app.utils.decorators import require_permission
 from flask import Blueprint, request, jsonify
 from app.extensions import get_db_connection
 
@@ -88,6 +89,8 @@ def parse_permissions(role_name: str, raw_perms) -> dict:
     key = role_name.strip().lower()
     base = dict(DEFAULT_PERMISSIONS.get(key, DEFAULT_PERMISSIONS["empleado"]))
 
+    base["coupons"] = key == "administrador"
+
     if isinstance(raw_perms, dict):
         base.update({k: bool(v) for k, v in raw_perms.items()})
         return base
@@ -135,6 +138,7 @@ def list_roles():
 
 @roles_bp.put("/<int:role_id>")
 @roles_bp.patch("/<int:role_id>")
+@require_permission("roles")
 def update_role(role_id):
     data = request.get_json(silent=True) or {}
     permisos = data.get("permisos") or {}

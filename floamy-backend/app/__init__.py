@@ -3,6 +3,7 @@ from flask_cors import CORS
 from app.config import Config
 from app.routes.auth_routes import auth_bp
 from app.routes.products_routes import products_bp
+from app.routes.coupons_routes import coupons_bp
 from app.routes.orders_routes import orders_bp
 from app.routes.inventory_routes import inventory_bp
 from app.routes.movements_routes import movements_bp
@@ -25,6 +26,7 @@ def create_app():
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(products_bp, url_prefix="/api/products")
+    app.register_blueprint(coupons_bp, url_prefix="/api/coupons")
     app.register_blueprint(orders_bp, url_prefix="/api/orders")
     app.register_blueprint(inventory_bp, url_prefix="/api/inventory")
     app.register_blueprint(movements_bp, url_prefix="/api/movements")

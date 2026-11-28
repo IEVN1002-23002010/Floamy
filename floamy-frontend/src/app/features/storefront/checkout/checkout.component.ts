@@ -1,3 +1,5 @@
+import { CouponsService } from '../../../core/services/coupons.service';
+import { CouponOffer } from '../../../core/models/coupon.model';
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgFor, NgIf } from '@angular/common';
@@ -235,9 +237,9 @@ import { printFloamyTicket, TicketData } from '../../../shared/utils/ticket-prin
             <!-- Cupón -->
             <div class="space-y-1.5">
               <div class="flex gap-2">
-                <input [(ngModel)]="couponInput"
+                <input [ngModel]="couponInput" (ngModelChange)="changeCode($event)"
                        (keyup.enter)="applyCoupon()"
-                       placeholder="Código (HOLAFLOAMY)"
+                       placeholder="Código promocional"
                        class="flex-1 px-3.5 py-2.5 text-xs font-mono uppercase bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-[#AAC8E0]/60 focus:outline-none focus:border-[#AAC8E0]" />
                 <button type="button"
                         (click)="applyCoupon()"
@@ -249,7 +251,7 @@ import { printFloamyTicket, TicketData } from '../../../shared/utils/ticket-prin
                    class="flex items-center justify-between text-[11px] px-2.5 py-1.5 rounded-lg"
                    [class]="msg.type === 'ok' ? 'bg-emerald-500/20 text-emerald-200' : 'bg-rose-500/20 text-rose-200'">
                 <span>{{ msg.text }}</span>
-                <button *ngIf="discountRate() > 0" type="button" (click)="removeCoupon()" class="underline font-bold ml-2 cursor-pointer">
+                <button *ngIf="offer()" type="button" (click)="removeCoupon()" class="underline font-bold ml-2 cursor-pointer">
                   Quitar
                 </button>
               </div>
@@ -261,8 +263,8 @@ import { printFloamyTicket, TicketData } from '../../../shared/utils/ticket-prin
                 <span>Subtotal ({{ totalItemsCount() }} {{ totalItemsCount() === 1 ? 'helado' : 'helados' }})</span>
                 <strong class="text-white">\${{ subtotal().toFixed(2) }}</strong>
               </div>
-              <div class="flex justify-between text-emerald-300" *ngIf="discountRate() > 0">
-                <span>Descuento (10%)</span>
+              <div class="flex justify-between text-emerald-300" *ngIf="offer()">
+                <span>Descuento · {{ offer()?.codigo }}</span>
                 <strong>-\${{ discountAmount().toFixed(2) }}</strong>
               </div>
               <div class="flex justify-between items-baseline pt-2 border-t border-white/10">
@@ -491,7 +493,9 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   searchedOrder = signal<any | null>(null);
   lastReceipt = signal<TicketData | null>(null);
   selectedMethod = signal('Efectivo');
-  discountRate = signal(0);
+  private coupons = inject(CouponsService);
+  offer = signal<CouponOffer | null>(null);
+  private validationId = 0;
   couponMsg = signal<{ type: 'ok' | 'err'; text: string } | null>(null);
   submitting = signal(false);
   loadingTrack = signal(false);
@@ -529,7 +533,13 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     )
   );
 
-  discountAmount = computed(() => this.subtotal() * this.discountRate());
+  discountAmount = computed(() => {
+    const offer = this.offer();
+    if (!offer) return 0;
+    const cents = Math.round(this.subtotal() * 100);
+    const value = Math.round(offer.valor * 100);
+    return Math.min(cents, offer.tipo === 'pesos' ? value : Math.round(cents * value / 10000)) / 100;
+  });
   total = computed(() => Math.max(0, this.subtotal() - this.discountAmount()));
 
   constructor() {
@@ -630,26 +640,29 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     localStorage.setItem(this.getCartKey(), JSON.stringify(updated));
   }
 
-  applyCoupon() {
-    const code = this.couponInput.trim().toUpperCase();
-    if (!code) {
-      this.couponMsg.set({ type: 'err', text: 'Escribe un código promocional.' });
-      return;
-    }
-    if (code === 'HOLAFLOAMY') {
-      this.discountRate.set(0.1);
-      this.couponMsg.set({ type: 'ok', text: 'Cupón HOLAFLOAMY aplicado (10% de descuento).' });
-    } else {
-      this.discountRate.set(0);
-      this.couponMsg.set({ type: 'err', text: 'Código no válido. Prueba con HOLAFLOAMY.' });
-    }
-  }
-
-  removeCoupon() {
-    this.discountRate.set(0);
-    this.couponInput = '';
+  changeCode(value: string) {
+    this.validationId++;
+    this.couponInput = value;
+    this.offer.set(null);
     this.couponMsg.set(null);
   }
+
+  applyCoupon() {
+    const id = ++this.validationId;
+    this.offer.set(null);
+    this.coupons.validate(this.couponInput.trim()).subscribe({
+      next: offer => {
+        if (id !== this.validationId) return;
+        this.offer.set(offer);
+        this.couponMsg.set({ type: 'ok', text: 'Cupón aplicado: ' + offer.codigo });
+      },
+      error: err => {
+        if (id === this.validationId) this.couponMsg.set({ type: 'err', text: err.error?.error || 'No se pudo validar el cupón.' });
+      }
+    });
+  }
+
+  removeCoupon() { this.changeCode(''); }
 
   orderStage(order: any): number {
     const statusText = String(order?.status || order?.estado || '').toLowerCase();
@@ -788,6 +801,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     }));
 
     const payload = {
+      codigo_cupon: this.offer()?.codigo,
       customer: custName,
       usuario_id: user.id,
       correo: user.correo,
@@ -820,6 +834,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
           discount: discVal,
           total: res.total ?? totalVal
         });
+        this.removeCoupon();
         this.items.set([]);
         localStorage.removeItem(this.getCartKey());
         this.loadMyOrders(true);

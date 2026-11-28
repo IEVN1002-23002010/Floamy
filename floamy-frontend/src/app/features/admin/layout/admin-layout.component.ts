@@ -66,7 +66,7 @@ import { LogoComponent } from '../../../shared/components/logo/logo.component';
         <nav class="flex-1 overflow-y-auto sidebar-scroll px-3 py-4 space-y-5 text-xs">
 
           <!-- GENERAL -->
-          <div *ngIf="hasAny(['dashboard', 'marketing', 'pos', 'orders', 'cash_register'])" class="space-y-1">
+          <div *ngIf="hasAny(['dashboard', 'marketing', 'coupons', 'pos', 'orders', 'cash_register'])" class="space-y-1">
             <div class="flex items-center gap-2 px-3 mb-1.5">
               <span class="text-[10px] font-bold tracking-[0.14em] uppercase text-[#6da0bf]">General</span>
               <span class="h-px flex-1 bg-white/10"></span>
@@ -104,6 +104,22 @@ import { LogoComponent } from '../../../shared/components/logo/logo.component';
                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
               </svg>
               <span class="truncate">Marketing</span>
+            </a>
+            <a *ngIf="auth.hasPermission('coupons')"
+               routerLink="/admin/cupones"
+               routerLinkActive
+               #rlaCupones="routerLinkActive"
+               (click)="sidebarOpen.set(false)"
+               [class]="rlaCupones.isActive
+                 ? 'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#6da0bf]/20 border border-[#6da0bf]/35 text-white font-semibold shadow-xs transition-all'
+                 : 'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl border border-transparent text-slate-300 hover:text-white hover:bg-white/[0.06] transition-all'"
+               style="text-decoration:none;">
+              <span *ngIf="rlaCupones.isActive" class="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[#7dd3fc]"></span>
+              <svg [class]="rlaCupones.isActive ? 'w-[18px] h-[18px] text-[#7dd3fc] shrink-0' : 'w-[18px] h-[18px] text-slate-400 group-hover:text-[#6da0bf] transition-colors shrink-0'"
+                   fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+              </svg>
+              <span class="truncate">Cupones</span>
             </a>
 
             <a *ngIf="auth.hasPermission('pos')"

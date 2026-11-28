@@ -12,6 +12,9 @@ export interface ToppingOption {
   nombre: string;
   precio: number;
   stock: number;
+  ingrediente_id?: number | null;
+  ingrediente_nombre?: string | null;
+  ingrediente_unidad?: string | null;
   proveedor_id?: number | null;
   proveedor_nombre?: string;
 }
@@ -22,6 +25,15 @@ export interface ProductPresentationStock {
   name: string;
   price: number;
   stock: number;
+}
+
+export interface RecipeIngredient {
+  id?: number;
+  ingrediente_id?: number;
+  ingrediente_nombre?: string;
+  nombre?: string;
+  unidad?: string;
+  cantidad_por_litro?: number;
 }
 
 export interface ProductItem {
@@ -35,6 +47,8 @@ export interface ProductItem {
   literProductId?: number;
   presentations?: ProductPresentationStock[];
   image?: string;
+  receta?: RecipeIngredient[];
+  recipe?: RecipeIngredient[];
 }
 
 export interface CartItem {

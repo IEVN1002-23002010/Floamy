@@ -29,3 +29,19 @@ def token_required(f):
         return f(*args, **kwargs)
 
     return decorated
+
+def require_permission(key):
+    def decorate(view):
+        @token_required
+        @wraps(view)
+        def checked(*args, **kwargs):
+            from app.extensions import get_db_connection
+            from app.routes.roles_routes import parse_permissions
+            with get_db_connection() as conn, conn.cursor() as cursor:
+                cursor.execute("SELECT r.nombre,r.permisos FROM usuarios u JOIN roles r ON r.id=u.rol_id WHERE u.id=%s AND u.activo=1", (request.user.get("user_id"),))
+                role = cursor.fetchone()
+            if not role or role["nombre"].lower() == "cliente" or not parse_permissions(role["nombre"], role["permisos"]).get(key):
+                return jsonify(error="Tu rol no tiene permiso."), 403
+            return view(*args, **kwargs)
+        return checked
+    return decorate

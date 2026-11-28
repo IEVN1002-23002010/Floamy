@@ -9,6 +9,7 @@ import { CheckoutComponent } from './features/storefront/checkout/checkout.compo
 import { AdminLoginComponent } from './features/auth/admin-login/admin-login.component';
 import { AdminLayoutComponent } from './features/admin/layout/admin-layout.component';
 import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
+import { CouponsComponent } from './features/admin/coupons/coupons.component';
 import { MarketingComponent } from './features/admin/marketing/marketing.component';
 import { PosComponent } from './features/admin/pos/pos.component';
 import { OrdersComponent } from './features/admin/orders/orders.component';
@@ -60,6 +61,7 @@ export const routes: Routes = [
     children: [
       { path: '', canActivate: [adminHomeRedirectGuard], children: [] },
       { path: 'resumen', component: DashboardComponent, canActivate: [permissionGuard('dashboard')] },
+      { path: 'cupones', component: CouponsComponent, canActivate: [permissionGuard('coupons')] },
       { path: 'marketing', component: MarketingComponent, canActivate: [permissionGuard('marketing')] },
       { path: 'pos', component: PosComponent, canActivate: [permissionGuard('pos')] },
       { path: 'pedidos', component: OrdersComponent, canActivate: [permissionGuard('orders')] },

@@ -12,44 +12,54 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
   imports: [RouterOutlet, RouterLink, RouterLinkActive, NgFor, NgIf, LogoComponent, CustomerAuthModalComponent],
   template: `
     <div class="customer-app">
-      <header class="customer-header">
-        <a routerLink="/" style="text-decoration:none;"><app-logo /></a>
+      <header class="customer-header !px-3.5 sm:!px-6 gap-2 relative">
+        <!-- Logo -->
+        <a routerLink="/" (click)="mobileMenuOpen.set(false)" class="shrink-0" style="text-decoration:none;">
+          <app-logo />
+        </a>
 
-        <nav>
+        <!-- Navegación escritorio -->
+        <nav class="hidden md:flex items-center gap-6">
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" style="text-decoration:none;">Inicio</a>
           <a routerLink="/sabores" routerLinkActive="active" style="text-decoration:none;">Sabores</a>
           <a routerLink="/pedido" routerLinkActive="active" style="text-decoration:none;">Mi pedido</a>
         </nav>
 
-        <div class="flex items-center gap-2.5">
+        <!-- Acciones derechas -->
+        <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <!-- Carrito -->
           <button type="button"
                   data-drawer-target="cart-drawer"
                   aria-controls="cart-drawer"
-                  (click)="cartOpen.set(true)"
-                  class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#011640] bg-white border border-slate-200 rounded-full hover:bg-[#dff0f7] transition cursor-pointer">
-            🛒
+                  (click)="mobileMenuOpen.set(false); cartOpen.set(true)"
+                  class="inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-semibold text-[#011640] bg-white border border-slate-200 rounded-full hover:bg-[#dff0f7] transition cursor-pointer">
+            <span>🛒</span>
             <span class="bg-[#011640] text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
               {{ cartCount() }}
             </span>
           </button>
 
+          <!-- Mis pedidos (Escritorio / Tablet) -->
           <a *ngIf="auth.currentUser()"
              routerLink="/pedido"
              fragment="historial-pedidos"
              style="text-decoration:none;"
-             class="hidden sm:inline-flex px-3.5 py-2 text-xs font-bold text-[#011640] bg-white border border-slate-200 rounded-full hover:bg-[#dff0f7] transition">
+             class="hidden md:inline-flex px-3.5 py-2 text-xs font-bold text-[#011640] bg-white border border-slate-200 rounded-full hover:bg-[#dff0f7] transition">
             Mis pedidos
           </a>
 
+          <!-- Botón Ingresar (Sin sesión) -->
           <button *ngIf="!auth.currentUser()"
                   type="button"
-                  (click)="authModalOpen.set(true)"
-                  class="px-4 py-2 text-xs font-semibold text-white bg-[#011640] hover:bg-[#0b234a] rounded-full transition cursor-pointer">
-            Ingresar / Registrarme
+                  (click)="mobileMenuOpen.set(false); authModalOpen.set(true)"
+                  class="px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-semibold text-white bg-[#011640] hover:bg-[#0b234a] rounded-full transition cursor-pointer whitespace-nowrap">
+            <span class="sm:hidden">Ingresar</span>
+            <span class="hidden sm:inline">Ingresar / Registrarme</span>
           </button>
 
+          <!-- Chip de usuario (Escritorio / Tablet) -->
           <div *ngIf="auth.currentUser()"
-               class="inline-flex items-center gap-2 bg-[#dff0f7] text-[#011640] py-1 px-3 pl-1.5 rounded-full text-xs font-semibold">
+               class="hidden sm:inline-flex items-center gap-2 bg-[#dff0f7] text-[#011640] py-1 px-3 pl-1.5 rounded-full text-xs font-semibold">
             <span class="w-6 h-6 rounded-full bg-[#011640] text-white grid place-items-center text-[11px] font-bold">
               {{ userInitial() }}
             </span>
@@ -59,19 +69,77 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
             </button>
           </div>
 
-          <a routerLink="/login" style="font-size:12px; color:var(--muted); text-decoration:none; font-weight:600;">
+          <!-- Acceso equipo (Escritorio / Tablet) -->
+          <a routerLink="/login"
+             style="font-size:12px; color:var(--muted); text-decoration:none; font-weight:600;"
+             class="hidden md:inline-block whitespace-nowrap">
             Acceso equipo
           </a>
+
+          <!-- Botón compacto de cuenta/opciones (Solo móvil) -->
+          <button type="button"
+                  (click)="mobileMenuOpen.set(!mobileMenuOpen())"
+                  [attr.aria-expanded]="mobileMenuOpen()"
+                  aria-label="Opciones de cuenta"
+                  class="md:hidden inline-flex items-center gap-1.5 p-1 pr-2.5 rounded-full border border-slate-200 bg-white text-[#011640] text-xs font-bold hover:bg-[#dff0f7] transition cursor-pointer">
+            <span class="w-7 h-7 rounded-full bg-[#011640] text-white grid place-items-center text-[11px] font-extrabold">
+              {{ auth.currentUser() ? userInitial() : '☰' }}
+            </span>
+            <span class="text-[11px]">{{ auth.currentUser() ? firstName() : 'Más' }}</span>
+          </button>
+        </div>
+
+        <!-- Panel desplegable para móvil -->
+        <div *ngIf="mobileMenuOpen()"
+             class="md:hidden absolute top-full right-3.5 left-3.5 mt-2 z-40 rounded-2xl bg-white border border-[#AAC8E0]/70 shadow-xl p-4 space-y-3">
+          <div *ngIf="auth.currentUser() as user"
+               class="flex items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-9 h-9 rounded-full bg-[#011640] text-white grid place-items-center text-xs font-extrabold shrink-0">
+                {{ userInitial() }}
+              </span>
+              <div class="min-w-0">
+                <p class="text-xs font-extrabold text-[#011640] truncate">Hola, {{ user.nombre }}</p>
+                <p class="text-[11px] text-slate-500 truncate">{{ user.correo }}</p>
+              </div>
+            </div>
+            <button type="button"
+                    (click)="auth.logout(); mobileMenuOpen.set(false)"
+                    class="px-3 py-1.5 rounded-xl bg-red-50 text-red-700 text-xs font-bold shrink-0 cursor-pointer">
+              Salir
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 gap-1.5 text-xs font-bold text-[#011640]">
+            <a *ngIf="auth.currentUser()"
+               routerLink="/pedido"
+               fragment="historial-pedidos"
+               (click)="mobileMenuOpen.set(false)"
+               style="text-decoration:none;"
+               class="px-3.5 py-2.5 rounded-xl bg-[#F7F3E9] hover:bg-[#DFF0F7] transition flex items-center justify-between">
+              <span>Mis pedidos</span>
+              <span>→</span>
+            </a>
+
+            <a routerLink="/login"
+               (click)="mobileMenuOpen.set(false)"
+               style="text-decoration:none;"
+               class="px-3.5 py-2.5 rounded-xl bg-slate-50 hover:bg-[#DFF0F7] text-slate-600 transition flex items-center justify-between">
+              <span>Acceso equipo</span>
+              <span>→</span>
+            </a>
+          </div>
         </div>
       </header>
 
       <router-outlet />
 
+      <!-- Barra inferior en móvil -->
       <nav class="mobile-nav">
-        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" style="text-decoration:none;">Inicio</a>
-        <a routerLink="/sabores" routerLinkActive="active" style="text-decoration:none;">Sabores</a>
-        <a routerLink="/pedido" routerLinkActive="active" style="text-decoration:none;">Pedido ({{ cartCount() }})</a>
-        <a *ngIf="auth.currentUser()" routerLink="/pedido" fragment="historial-pedidos" style="text-decoration:none;">Historial</a>
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="mobileMenuOpen.set(false)" style="text-decoration:none;">Inicio</a>
+        <a routerLink="/sabores" routerLinkActive="active" (click)="mobileMenuOpen.set(false)" style="text-decoration:none;">Sabores</a>
+        <a routerLink="/pedido" routerLinkActive="active" (click)="mobileMenuOpen.set(false)" style="text-decoration:none;">Pedido ({{ cartCount() }})</a>
+        <a *ngIf="auth.currentUser()" routerLink="/pedido" fragment="historial-pedidos" (click)="mobileMenuOpen.set(false)" style="text-decoration:none;">Historial</a>
       </nav>
 
       <!-- Drawer del carrito -->
@@ -117,7 +185,7 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
           </svg>
 
           <!-- Encabezado -->
-          <div class="relative z-10 px-5 pt-5 pb-4 border-b border-[#AAC8E0]/50 bg-white/45 backdrop-blur-md flex items-center justify-between">
+          <div class="relative z-10 px-4 sm:px-5 pt-5 pb-4 border-b border-[#AAC8E0]/50 bg-white/45 backdrop-blur-md flex items-center justify-between">
             <div>
               <span class="inline-block px-2.5 py-0.5 rounded-full bg-[#011640] text-[#F7F3E9] text-[10px] font-bold tracking-widest uppercase">
                 TU CANASTA
@@ -136,7 +204,7 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
           </div>
 
           <!-- Lista de productos o estado vacío -->
-          <div class="relative z-10 flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3">
+          <div class="relative z-10 flex-1 overflow-y-auto px-4 sm:px-5 py-4 flex flex-col gap-3">
             <div *ngIf="cartItems().length === 0"
                  class="my-auto mx-auto w-full p-6 rounded-3xl bg-white/85 backdrop-blur-md text-center shadow-sm space-y-2.5">
               <div class="w-12 h-12 rounded-2xl bg-[#DFF0F7] text-[#011640] flex items-center justify-center mx-auto">
@@ -220,7 +288,7 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
           </div>
 
           <!-- Pie en azul marino -->
-          <div class="relative z-10 p-5 bg-gradient-to-b from-[#011640] via-[#072152] to-[#0b2859] text-[#F7F3E9] space-y-3 shadow-2xl">
+          <div class="relative z-10 p-4 sm:p-5 bg-gradient-to-b from-[#011640] via-[#072152] to-[#0b2859] text-[#F7F3E9] space-y-3 shadow-2xl">
             <div class="flex items-center justify-between text-xs text-[#AAC8E0]">
               <span>{{ cartCount() }} {{ cartCount() === 1 ? 'helado en canasta' : 'helados en canasta' }}</span>
               <span class="px-2.5 py-0.5 rounded-full bg-white/10 text-[#DFF0F7] font-bold">
@@ -255,6 +323,7 @@ export class StorefrontLayoutComponent {
 
   authModalOpen = signal(false);
   cartOpen = signal(false);
+  mobileMenuOpen = signal(false);
 
   firstName = computed(() => {
     const full = this.auth.currentUser()?.nombre || '';

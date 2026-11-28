@@ -284,7 +284,7 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
                   BENEFICIO APP · 10% OFF
                 </span>
                 <h3 class="text-xl font-extrabold leading-snug">
-                  Tu primer helado va con descuento
+                  Tu primer helado va con descuento usn
                 </h3>
                 <p class="text-xs text-[#DFF0F7]/90 leading-relaxed">
                   Ordena desde la PWA, recoge sin filas en 15 min y aplica tu cupón de bienvenida.
@@ -307,8 +307,159 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
         </div>
       </section>
 
-      <!-- 5. SECCIÓN DE RESEÑAS SIMÉTRICA Y ORDENADA -->
-      <section class="relative py-20 bg-gradient-to-b from-[#F7F3E9] to-[#DFF0F7]/40">
+      <!-- 5. RECOLECCIÓN Y PREGUNTAS FRECUENTES -->
+      <section id="recoleccion" class="relative isolate overflow-hidden pt-20 sm:pt-24 pb-6 sm:pb-8 bg-[#F7F3E9]">
+        <div class="relative z-10 max-w-7xl mx-auto px-6">
+          <div class="max-w-2xl mb-10 sm:mb-12">
+            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#DFF0F7] border border-[#AAC8E0]/70 text-[#011640] text-[10px] font-extrabold tracking-[0.18em] uppercase">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#6DA0BF]"></span>
+              COMPRA Y RECOLECCIÓN
+            </span>
+            <h2 class="mt-4 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#011640]">
+              Tu momento Floamy,<br class="hidden sm:block" /> sin complicaciones.
+            </h2>
+            <p class="mt-3 text-sm sm:text-base text-[#011640]/70 leading-relaxed max-w-xl">
+              Pide en línea, consulta el avance y pasa por tu helado recién preparado.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+            <!-- Tarjeta destacada: modalidad de compra -->
+            <article class="lg:col-span-5 relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#011640] via-[#0b2859] to-[#315d83] p-6 sm:p-8 text-[#F7F3E9] shadow-xl shadow-[#011640]/15">
+              <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full border-[24px] border-white/5"></div>
+              <div class="absolute right-7 top-24 h-3 w-3 rounded-full bg-[#AAC8E0]/70"></div>
+              <div class="absolute right-16 top-16 h-2 w-2 rounded-full bg-[#DFF0F7]/70"></div>
+
+              <div class="relative">
+                <div class="flex items-center justify-between gap-3">
+                  <span class="inline-flex items-center gap-2 rounded-full border border-[#AAC8E0]/35 bg-white/10 px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase text-[#DFF0F7]">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" stroke-width="1.8" />
+                      <circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8" />
+                    </svg>
+                    Solo recolección
+                  </span>
+                  <span class="text-xs font-semibold text-[#AAC8E0]">Floamy</span>
+                </div>
+
+                <h3 class="mt-6 text-2xl sm:text-3xl font-extrabold leading-tight">
+                  Hecho al momento.<br /><span class="text-[#AAC8E0]">Listo para ti.</span>
+                </h3>
+                <p class="mt-3 text-sm leading-relaxed text-[#DFF0F7]/85">
+                  Por ahora no contamos con entrega a domicilio. Tus pedidos se recogen en sucursal y el tiempo estimado de preparación es de 15 minutos.
+                </p>
+
+                <div class="mt-7 space-y-4">
+                  <div class="flex gap-3.5">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#DFF0F7] text-xs font-extrabold text-[#011640]">1</span>
+                    <div class="pt-0.5">
+                      <strong class="block text-sm font-bold text-white">Arma tu pedido</strong>
+                      <span class="mt-0.5 block text-xs leading-relaxed text-[#DFF0F7]/75">Elige tamaño, sabor y toppings desde la página.</span>
+                    </div>
+                  </div>
+                  <div class="flex gap-3.5">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#DFF0F7] text-xs font-extrabold text-[#011640]">2</span>
+                    <div class="pt-0.5">
+                      <strong class="block text-sm font-bold text-white">Revisa el estado</strong>
+                      <span class="mt-0.5 block text-xs leading-relaxed text-[#DFF0F7]/75">Consulta el avance y guarda el folio en “Mi pedido”.</span>
+                    </div>
+                  </div>
+                  <div class="flex gap-3.5">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#DFF0F7] text-xs font-extrabold text-[#011640]">3</span>
+                    <div class="pt-0.5">
+                      <strong class="block text-sm font-bold text-white">Pasa por tu helado</strong>
+                      <span class="mt-0.5 block text-xs leading-relaxed text-[#DFF0F7]/75">Cuando esté listo, presenta tu folio en la sucursal.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-7 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/10 p-4">
+                  <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#AAC8E0]/20 text-[#DFF0F7]">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+                      <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </span>
+                  <span>
+                    <strong class="block text-sm font-extrabold text-white">Aproximadamente 15 min</strong>
+                    <small class="mt-0.5 block text-[11px] text-[#DFF0F7]/75">El tiempo puede variar según la demanda.</small>
+                  </span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Preguntas frecuentes -->
+            <div class="lg:col-span-7 rounded-[2rem] border border-[#AAC8E0]/70 bg-white/85 p-5 sm:p-7 lg:p-8 shadow-lg shadow-[#011640]/5 backdrop-blur-sm">
+              <div class="mb-5 sm:mb-6">
+                <span class="text-[10px] font-extrabold tracking-[0.18em] uppercase text-[#6DA0BF]">TE AYUDAMOS</span>
+                <h3 class="mt-1 text-2xl sm:text-3xl font-extrabold tracking-tight text-[#011640]">Preguntas frecuentes</h3>
+              </div>
+
+              <div class="space-y-3">
+                <details class="group overflow-hidden rounded-2xl border border-[#AAC8E0]/65 bg-[#F7F3E9]/65 open:border-[#6DA0BF]/70 open:bg-white transition-colors">
+                  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-4 sm:p-5 text-sm font-bold text-[#011640]">
+                    ¿Hacen entregas a domicilio?
+                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#DFF0F7] text-lg font-medium text-[#011640] transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <p class="px-4 pb-4 sm:px-5 sm:pb-5 text-xs leading-relaxed text-[#011640]/70">
+                    Por el momento no. Todos los pedidos se recogen en nuestra sucursal.
+                  </p>
+                </details>
+
+                <details class="group overflow-hidden rounded-2xl border border-[#AAC8E0]/65 bg-[#F7F3E9]/65 open:border-[#6DA0BF]/70 open:bg-white transition-colors">
+                  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-4 sm:p-5 text-sm font-bold text-[#011640]">
+                    ¿Cuánto tarda en estar listo?
+                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#DFF0F7] text-lg font-medium text-[#011640] transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <p class="px-4 pb-4 sm:px-5 sm:pb-5 text-xs leading-relaxed text-[#011640]/70">
+                    El tiempo estimado es de 15 minutos. Puede variar según la demanda; revisa el estado de tu pedido antes de venir.
+                  </p>
+                </details>
+
+                <details class="group overflow-hidden rounded-2xl border border-[#AAC8E0]/65 bg-[#F7F3E9]/65 open:border-[#6DA0BF]/70 open:bg-white transition-colors">
+                  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-4 sm:p-5 text-sm font-bold text-[#011640]">
+                    ¿Qué formas de pago aceptan?
+                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#DFF0F7] text-lg font-medium text-[#011640] transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <p class="px-4 pb-4 sm:px-5 sm:pb-5 text-xs leading-relaxed text-[#011640]/70">
+                    Puedes pagar en efectivo al recoger o con tarjeta de débito o crédito en línea.
+                  </p>
+                </details>
+
+                <details class="group overflow-hidden rounded-2xl border border-[#AAC8E0]/65 bg-[#F7F3E9]/65 open:border-[#6DA0BF]/70 open:bg-white transition-colors">
+                  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-4 sm:p-5 text-sm font-bold text-[#011640]">
+                    ¿Puedo cambiar o cancelar mi pedido?
+                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#DFF0F7] text-lg font-medium text-[#011640] transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <p class="px-4 pb-4 sm:px-5 sm:pb-5 text-xs leading-relaxed text-[#011640]/70">
+                    Solicita cualquier cambio o cancelación lo antes posible. Podemos realizarlo mientras el pedido aún no haya comenzado a prepararse; una vez en preparación, no podemos garantizar cambios ni cancelaciones porque elaboramos los productos al momento.
+                  </p>
+                </details>
+
+                <details class="group overflow-hidden rounded-2xl border border-[#AAC8E0]/65 bg-[#F7F3E9]/65 open:border-[#6DA0BF]/70 open:bg-white transition-colors">
+                  <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-4 sm:p-5 text-sm font-bold text-[#011640]">
+                    ¿Qué hago si recibo un pedido incorrecto?
+                    <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#DFF0F7] text-lg font-medium text-[#011640] transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <p class="px-4 pb-4 sm:px-5 sm:pb-5 text-xs leading-relaxed text-[#011640]/70">
+                    Muéstranos tu folio al recoger y cuéntanos qué ocurrió para que podamos revisar el caso.
+                  </p>
+                </details>
+              </div>
+
+              <div class="mt-5 flex gap-3 rounded-2xl border border-[#AAC8E0]/60 bg-[#DFF0F7]/70 p-4">
+                <span class="mt-0.5 text-[#6DA0BF]" aria-hidden="true">✦</span>
+                <p class="text-[11px] leading-relaxed text-[#011640]/75">
+                  <strong class="text-[#011640]">Cambios y cancelaciones:</strong> las solicitudes dependen de que el pedido aún no haya comenzado a prepararse.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. SECCIÓN DE RESEÑAS SIMÉTRICA Y ORDENADA -->
+      <section class="relative pt-8 sm:pt-10 pb-20 bg-[#F7F3E9]">
         <div class="max-w-7xl mx-auto px-6 space-y-8">
           
           <!-- Encabezado alineado -->

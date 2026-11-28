@@ -15,22 +15,22 @@ export interface AuthUser {
 
 const DEFAULT_ROLE_PERMISSIONS: Record<string, Record<string, boolean>> = {
   administrador: {
-    dashboard: true, marketing: true, pos: true, orders: true, cash_register: true,
+    dashboard: true, marketing: true, coupons: true, pos: true, orders: true, cash_register: true,
     products: true, catalog_options: true, inventory: true, purchases: true,
     movements: true, suppliers: true, clients: true, users: true, roles: true, reviews: true
   },
   empleado: {
-    dashboard: false, marketing: false, pos: true, orders: true, cash_register: true,
+    dashboard: false, marketing: false, coupons: false, pos: true, orders: true, cash_register: true,
     products: true, catalog_options: false, inventory: true, purchases: false,
     movements: false, suppliers: false, clients: true, users: false, roles: false, reviews: true
   },
   cocina: {
-    dashboard: false, marketing: false, pos: false, orders: true, cash_register: false,
+    dashboard: false, marketing: false, coupons: false, pos: false, orders: true, cash_register: false,
     products: true, catalog_options: false, inventory: true, purchases: false,
     movements: true, suppliers: false, clients: false, users: false, roles: false, reviews: false
   },
   cliente: {
-    dashboard: false, marketing: false, pos: false, orders: true, cash_register: false,
+    dashboard: false, marketing: false, coupons: false, pos: false, orders: true, cash_register: false,
     products: true, catalog_options: false, inventory: false, purchases: false,
     movements: false, suppliers: false, clients: false, users: false, roles: false, reviews: true
   }
@@ -38,6 +38,7 @@ const DEFAULT_ROLE_PERMISSIONS: Record<string, Record<string, boolean>> = {
 
 const ADMIN_ROUTE_ORDER: Array<{ key: string; route: string }> = [
   { key: 'dashboard', route: '/admin/resumen' },
+  { key: 'coupons', route: '/admin/cupones' },
   { key: 'marketing', route: '/admin/marketing' },
   { key: 'pos', route: '/admin/pos' },
   { key: 'orders', route: '/admin/pedidos' },

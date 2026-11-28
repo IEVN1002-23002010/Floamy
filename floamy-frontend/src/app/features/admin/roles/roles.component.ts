@@ -135,6 +135,7 @@ export class RolesComponent implements OnInit {
       subtitle: 'Indicadores, campañas y operación en mostrador',
       items: [
         { key: 'dashboard', label: 'Resumen ejecutivo', hint: 'KPIs, gráficas de ventas y demografía' },
+        { key: 'coupons', label: 'Cupones', hint: 'Administrar descuentos y límites de canje' },
         { key: 'marketing', label: 'Marketing y campañas', hint: 'Metas comerciales, anuncios y ROI' },
         { key: 'pos', label: 'Punto de venta (POS)', hint: 'Cobro rápido en sucursal' },
         { key: 'orders', label: 'Pedidos', hint: 'Seguimiento y estados de entrega' },

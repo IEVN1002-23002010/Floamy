@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgFor, NgIf } from '@angular/common';
 import { DashboardService } from '../../../core/services/dashboard.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
 import {
   DashboardSummary,
@@ -54,7 +55,7 @@ interface ChartPoint extends EvolucionVentaPoint {
     <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
         <span class="eyebrow">RESUMEN EJECUTIVO</span>
-        <h1 class="text-2xl sm:text-3xl font-bold text-[#011640] mt-0.5">Todo fluye, Andrea</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-[#011640] mt-0.5">Todo fluye, {{ greetingName() }}</h1>
         <p class="text-xs sm:text-sm text-slate-500 mt-1">Métricas operativas y comerciales conectadas en tiempo real con MySQL.</p>
       </div>
       <div class="flex items-center gap-2.5">
@@ -444,7 +445,13 @@ interface ChartPoint extends EvolucionVentaPoint {
 })
 export class DashboardComponent implements OnInit {
   private dashService = inject(DashboardService);
+  private auth = inject(AuthService);
   protected Math = Math;
+
+  greetingName = computed(() => {
+    const fullName = this.auth.currentUser()?.nombre?.trim();
+    return fullName ? fullName.split(/\s+/)[0] : 'bienvenido/a';
+  });
 
   summary = signal<DashboardSummary | null>(null);
   hoveredPoint = signal<ChartPoint | null>(null);

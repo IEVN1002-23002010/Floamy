@@ -65,43 +65,48 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
           <!-- PASO 2: Sabor -->
           <div class="p-5 sm:p-6">
             <div class="flex items-center gap-3 mb-3.5">
-              <span class="w-7 h-7 rounded-full bg-[#011640] text-[#F7F3E9] text-xs font-extrabold flex items-center justify-center shrink-0">
-                2
-              </span>
+              <span class="w-7 h-7 rounded-full bg-[#011640] text-[#F7F3E9] text-xs font-extrabold flex items-center justify-center shrink-0">2</span>
               <div>
                 <h3 class="text-base sm:text-lg font-extrabold text-[#011640] leading-tight">Elige tu sabor</h3>
                 <span class="text-xs text-[#011640]/60">Preparados al momento con fruta natural</span>
               </div>
             </div>
-            
+
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              <button *ngFor="let p of productsService.products()"
-                      type="button"
-                      [disabled]="getStockForFlavor(p) === 0"
-                      (click)="selectFlavor(p)"
-                      [class]="activeFlavor()?.id === p.id
-                        ? 'relative p-3 text-left rounded-2xl border-2 border-[#011640] bg-[#DFF0F7]/60 flex items-center gap-3 shadow-xs transition cursor-pointer'
-                        : 'relative p-3 text-left rounded-2xl border border-[#AAC8E0]/60 bg-[#F7F3E9]/35 hover:bg-white hover:border-[#6DA0BF] disabled:opacity-45 disabled:cursor-not-allowed flex items-center gap-3 transition cursor-pointer'">
-                <div class="scoop shrink-0 !w-11 !h-11 rounded-full overflow-hidden ring-2 ring-white shadow-xs" [class]="p.tone">
-                  <img *ngIf="p.image" [src]="p.image" [alt]="p.name" class="w-full h-full object-cover" />
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center justify-between gap-1">
-                    <strong class="block text-xs sm:text-sm font-extrabold text-[#011640] leading-tight truncate">{{ p.name }}</strong>
-                    <span *ngIf="activeFlavor()?.id === p.id"
-                          class="w-4 h-4 rounded-full bg-[#011640] text-[#F7F3E9] text-[10px] flex items-center justify-center font-bold shrink-0">
-                      ✓
-                    </span>
+              <div *ngFor="let p of productsService.products()" class="relative min-w-0">
+                <button type="button"
+                        class="w-full pr-9"
+                        [disabled]="getStockForFlavor(p) === 0"
+                        (click)="selectFlavor(p)"
+                        [class]="activeFlavor()?.id === p.id
+                          ? 'relative w-full p-3 pr-9 text-left rounded-2xl border-2 border-[#011640] bg-[#DFF0F7]/60 flex items-center gap-3 shadow-xs transition cursor-pointer'
+                          : 'relative w-full p-3 pr-9 text-left rounded-2xl border border-[#AAC8E0]/60 bg-[#F7F3E9]/35 hover:bg-white hover:border-[#6DA0BF] disabled:opacity-45 disabled:cursor-not-allowed flex items-center gap-3 transition cursor-pointer'">
+                  <div class="scoop shrink-0 !w-11 !h-11 rounded-full overflow-hidden ring-2 ring-white shadow-xs" [class]="p.tone">
+                    <img *ngIf="p.image" [src]="p.image" [alt]="p.name" class="w-full h-full object-cover" />
                   </div>
-                  <div class="flex items-center justify-between mt-1">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-[#6DA0BF] truncate">{{ p.flavor }}</span>
-                    <span class="text-[10px] font-semibold shrink-0"
-                          [class]="getStockForFlavor(p) > 0 ? 'text-[#011640]/60' : 'text-rose-500'">
-                      {{ getStockForFlavor(p) > 0 ? getStockForFlavor(p) + ' disp.' : 'Agotado' }}
-                    </span>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between gap-1">
+                      <strong class="block text-xs sm:text-sm font-extrabold text-[#011640] leading-tight truncate">{{ p.name }}</strong>
+                      <span *ngIf="activeFlavor()?.id === p.id"
+                            class="w-4 h-4 rounded-full bg-[#011640] text-[#F7F3E9] text-[10px] flex items-center justify-center font-bold shrink-0">✓</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-1">
+                      <span class="text-[10px] font-bold uppercase tracking-wider text-[#6DA0BF] truncate">{{ p.flavor }}</span>
+                      <span class="text-[10px] font-semibold shrink-0 pr-1"
+                            [class]="getStockForFlavor(p) > 0 ? 'text-[#011640]/60' : 'text-rose-500'">
+                        {{ getStockForFlavor(p) > 0 ? getStockForFlavor(p) + ' disp.' : 'Agotado' }}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </button>
+                </button>
+                <button type="button"
+                        class="absolute right-2 bottom-2 z-10 w-6 h-6 rounded-full border border-[#AAC8E0] bg-white text-[#011640] text-xs font-extrabold hover:bg-[#DFF0F7] transition"
+                        [attr.aria-label]="'Ver ingredientes de ' + p.name"
+                        title="Ver ingredientes"
+                        (click)="showFlavorIngredients(p)">
+                  i
+                </button>
+              </div>
             </div>
           </div>
 
@@ -128,18 +133,24 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
             </p>
 
             <div class="flex flex-wrap gap-2">
-              <button *ngFor="let t of optionsService.toppings()"
-                      type="button"
-                      [disabled]="t.stock === 0"
-                      (click)="toggleTopping(t)"
-                      [class]="isToppingSelected(t.id)
-                        ? 'px-3.5 py-2 rounded-full border-2 border-[#011640] bg-[#011640] text-[#F7F3E9] text-xs font-bold inline-flex items-center gap-2 shadow-xs transition cursor-pointer'
-                        : 'px-3.5 py-2 rounded-full border border-[#AAC8E0] bg-[#F7F3E9]/50 hover:bg-[#DFF0F7]/60 text-[#011640] disabled:opacity-45 disabled:cursor-not-allowed text-xs font-bold inline-flex items-center gap-2 transition cursor-pointer'">
-                <span>{{ isToppingSelected(t.id) ? '✓' : '+' }} {{ t.nombre }}</span>
-                <span [class]="isToppingSelected(t.id) ? 'text-[#AAC8E0]' : 'text-[#6DA0BF]'">
-                  +{{ t.precio | currencyMxn }}
-                </span>
-              </button>
+              <div *ngFor="let t of optionsService.toppings()" class="inline-flex items-center gap-1.5">
+                <button type="button"
+                        [disabled]="t.stock === 0"
+                        (click)="toggleTopping(t)"
+                        [class]="isToppingSelected(t.id)
+                          ? 'px-3.5 py-2 rounded-full border-2 border-[#011640] bg-[#011640] text-[#F7F3E9] text-xs font-bold inline-flex items-center gap-2 shadow-xs transition cursor-pointer'
+                          : 'px-3.5 py-2 rounded-full border border-[#AAC8E0] bg-[#F7F3E9]/50 hover:bg-[#DFF0F7]/60 text-[#011640] disabled:opacity-45 disabled:cursor-not-allowed text-xs font-bold inline-flex items-center gap-2 transition cursor-pointer'">
+                  <span>{{ isToppingSelected(t.id) ? '✓' : '+' }} {{ t.nombre }}</span>
+                  <span [class]="isToppingSelected(t.id) ? 'text-[#AAC8E0]' : 'text-[#6DA0BF]'">+{{ t.precio | currencyMxn }}</span>
+                </button>
+                <button type="button"
+                        class="w-6 h-6 rounded-full border border-[#AAC8E0] bg-white text-[#011640] text-xs font-extrabold hover:bg-[#DFF0F7] transition"
+                        [attr.aria-label]="'Ver ingrediente de ' + t.nombre"
+                        title="Ver ingrediente"
+                        (click)="showToppingIngredients(t)">
+                  i
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -225,6 +236,42 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
       </div>
     </section>
 
+    <!-- Modal: ingredientes de sabor o topping -->
+    <div *ngIf="ingredientInfo() as info"
+         class="fixed inset-0 z-[60] flex items-center justify-center bg-[#011640]/60 backdrop-blur-sm p-4"
+         role="dialog" aria-modal="true" aria-labelledby="ingredient-info-title"
+         (click)="ingredientInfo.set(null)">
+      <article class="w-full max-w-md rounded-3xl border border-[#AAC8E0] bg-[#F7F3E9] p-6 shadow-2xl"
+               (click)="$event.stopPropagation()">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <span class="text-[10px] font-extrabold tracking-widest uppercase text-[#6DA0BF]">INFORMACIÓN DEL PRODUCTO</span>
+            <h3 id="ingredient-info-title" class="mt-1 text-xl font-extrabold text-[#011640]">{{ info.title }}</h3>
+          </div>
+          <button type="button" (click)="ingredientInfo.set(null)"
+                  class="w-8 h-8 rounded-xl border border-[#AAC8E0] bg-white text-[#011640] font-bold hover:bg-[#DFF0F7]"
+                  aria-label="Cerrar">×</button>
+        </div>
+
+        <div class="mt-5 rounded-2xl border border-[#AAC8E0]/70 bg-white p-4">
+          <h4 class="text-sm font-extrabold text-[#011640]">Ingredientes registrados en la receta</h4>
+          <ul *ngIf="info.ingredients.length > 0; else noIngredients" class="mt-3 space-y-2">
+            <li *ngFor="let ingredient of info.ingredients" class="flex items-start gap-2 text-sm text-[#011640]/80">
+              <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#6DA0BF]"></span>
+              <span>{{ ingredient }}</span>
+            </li>
+          </ul>
+          <ng-template #noIngredients>
+            <p class="mt-2 text-xs leading-relaxed text-[#011640]/65">Aún no hay ingredientes vinculados en la receta de este producto.</p>
+          </ng-template>
+        </div>
+
+        <p class="mt-4 rounded-xl border border-[#AAC8E0]/60 bg-[#DFF0F7]/70 p-3 text-[11px] leading-relaxed text-[#011640]/75">
+          La base de datos registra ingredientes, pero no contiene una declaración completa de alérgenos o trazas. Si tienes una alergia, confirma la información con el personal antes de pedir.
+        </p>
+      </article>
+    </div>
+
     <!-- Modal: ¿Quieres armar otro helado? -->
     <div *ngIf="askAnotherOpen()"
          tabindex="-1"
@@ -268,9 +315,28 @@ export class IceCreamBuilderComponent {
   selectedToppings = signal<ToppingOption[]>([]);
   quantity = signal(1);
   askAnotherOpen = signal(false);
+  ingredientInfo = signal<{ title: string; ingredients: string[] } | null>(null);
 
   activePres = computed(() => this.selectedPres() || this.optionsService.presentations()[0] || null);
   activeFlavor = computed(() => this.selectedFlavor() || this.productsService.products()[0] || null);
+
+  showFlavorIngredients(product: ProductItem) {
+    const recipe = product.receta || product.recipe || [];
+    const ingredients = recipe
+      .map((item) => item.ingrediente_nombre || item.nombre || '')
+      .map((name) => name.trim())
+      .filter((name, index, list) => Boolean(name) && list.indexOf(name) === index);
+
+    this.ingredientInfo.set({ title: `Ingredientes de ${product.name}`, ingredients });
+  }
+
+  showToppingIngredients(topping: ToppingOption) {
+    const name = (topping.ingrediente_nombre || '').trim();
+    this.ingredientInfo.set({
+      title: `Ingrediente de ${topping.nombre}`,
+      ingredients: name ? [name] : []
+    });
+  }
 
   selectPresentation(pres: PresentationOption) {
     this.selectedPres.set(pres);

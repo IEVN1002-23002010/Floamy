@@ -5,6 +5,10 @@ from datetime import datetime, date
 from flask import Blueprint, request, jsonify
 from app.extensions import get_db_connection
 
+from app.utils.decorators import token_required
+from decimal import Decimal
+from app.routes.coupons_routes import available_coupon, discount_for
+
 orders_bp = Blueprint("orders", __name__)
 
 STAGE_TO_STATUS = {
@@ -429,6 +433,7 @@ def list_orders():
 
 @orders_bp.route("", methods=["POST"])
 @orders_bp.route("/", methods=["POST"])
+@token_required
 def create_order():
     data = request.get_json(silent=True) or {}
     customer = (data.get("customer") or data.get("customerName") or data.get("cliente") or "").strip()
@@ -442,7 +447,7 @@ def create_order():
 
     conn = get_db_connection()
     registered_user = None
-    raw_uid = data.get("usuario_id")
+    raw_uid = None if is_pos_order else request.user.get("user_id")
     if raw_uid:
         try:
             with conn.cursor() as cursor:
@@ -489,11 +494,11 @@ def create_order():
             "resolved_toppings": [],
         })
 
-    calc_subtotal = sum(i["qty"] * i["price"] for i in normalized_items)
-    total = float(data.get("total") if data.get("total") is not None else calc_subtotal)
-    subtotal = float(data.get("subtotal") if data.get("subtotal") is not None else (calc_subtotal or total))
-    raw_discount = data.get("descuento") if data.get("descuento") is not None else data.get("discount")
-    descuento = float(raw_discount if raw_discount is not None else max(0.0, round(subtotal - total, 2)))
+    coupon_code = str(data.get("codigo_cupon") or "").strip()
+    coupon = None
+    subtotal = Decimal("0.00")
+    if any(item["qty"] < 1 for item in normalized_items):
+        return jsonify(error="Cantidad inválida."), 400
 
     if data.get("stage") is not None:
         init_stage = max(0, min(3, int(data["stage"])))
@@ -524,6 +529,7 @@ def create_order():
             toppings_porciones_requeridas = {}
 
             for item in normalized_items:
+                pr_row = None
                 pid_check = resolve_product_id(cursor, item["raw"])
                 item["resolved_prod_id"] = pid_check
                 if pid_check is not None:
@@ -541,6 +547,11 @@ def create_order():
                             desechables_requeridos[des_id] = desechables_requeridos.get(des_id, 0) + item["qty"]
 
                 resolved_tops = _resolve_item_toppings(cursor, item)
+                if not pr_row:
+                    raise ValueError("Producto o presentación no disponible.")
+                unit_price = Decimal(str(pr_row["precio"])) + sum(Decimal(str(t["precio"])) for t in resolved_tops)
+                item["price"] = float(unit_price)
+                subtotal += unit_price * item["qty"]
                 item["resolved_toppings"] = resolved_tops
                 for t_row in resolved_tops:
                     tid = int(t_row["id"])
@@ -595,6 +606,15 @@ def create_order():
                         "error": f"Solo quedan {int(t_row['stock'])} porciones de {t_row['nombre']}."
                     }), 400
 
+            conn.begin()
+            descuento = Decimal("0.00")
+            if coupon_code:
+                coupon = available_coupon(cursor, coupon_code, lock=True)
+                descuento = discount_for(coupon, subtotal)
+            total = subtotal - descuento
+            if data.get("total") is not None and abs(Decimal(str(data["total"])) - total) >= Decimal(".005"):
+                raise ValueError("El total cambió. Revisa el carrito y vuelve a aplicar el cupón.")
+            subtotal, descuento, total = map(float, (subtotal, descuento, total))
             payment_method = resolve_enum_col(
                 ped_schema,
                 "metodo_pago",
@@ -685,6 +705,10 @@ def create_order():
             p_ph = ", ".join(["%s"] * len(ped_data))
             cursor.execute(f"INSERT INTO pedidos ({p_cols}) VALUES ({p_ph})", tuple(ped_data.values()))
             pedido_id = cursor.lastrowid
+            if coupon:
+                cursor.execute("INSERT INTO canjes_cupon(pedido_id,cupon_id,codigo,descuento) VALUES (%s,%s,%s,%s)",
+                               (pedido_id, coupon["id"], coupon["codigo"], descuento))
+                cursor.execute("UPDATE cupones SET usados=usados+1 WHERE id=%s", (coupon["id"],))
 
             cursor.execute("SHOW COLUMNS FROM detalle_pedido")
             det_schema = cursor.fetchall()
@@ -862,6 +886,9 @@ def create_order():
         except Exception:
             pass
         return jsonify({"error": f"No se pudo guardar el pedido: {exc}"}), 400
+
+    finally:
+        conn.close()
 
     return jsonify({
         "id": folio,
