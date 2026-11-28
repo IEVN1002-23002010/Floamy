@@ -7,6 +7,7 @@ import { OrdersService } from '../../../core/services/orders.service';
 import { CartItem, ProductItem, ToppingOption } from '../../../core/models/product.model';
 import { PageTitleComponent } from '../../../shared/components/page-title/page-title.component';
 import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
+import { printFloamyTicket, TicketData } from '../../../shared/utils/ticket-printer';
 
 @Component({
   selector: 'app-pos',
@@ -90,17 +91,26 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
       <aside class="cart-panel">
         <div class="cart-title">
           <div><h2>Pedido actual</h2><span>Venta de mostrador · {{ totalItems() }} arts.</span></div>
-          <button type="button" (click)="cart.set([]); paidFolio.set(''); errorMsg.set('')">Limpiar</button>
+          <button type="button" (click)="clearPos()">Limpiar</button>
         </div>
         <div class="cart-items">
-          <div *ngIf="paidFolio()" role="alert" class="p-3 text-xs font-semibold text-emerald-800 rounded-xl bg-emerald-50 border border-emerald-200">
-            Venta cobrada con folio {{ paidFolio() }}
+          <div *ngIf="paidFolio()" role="alert" class="p-3 text-xs font-semibold text-emerald-800 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2">
+            <div>Venta cobrada con folio {{ paidFolio() }}</div>
+            <button *ngIf="lastTicket()"
+                    type="button"
+                    (click)="printTicket()"
+                    class="w-full py-1.5 px-3 text-xs font-bold text-[#011640] bg-white border border-emerald-300 rounded-lg hover:bg-emerald-100 transition cursor-pointer">
+              🖨️ Imprimir ticket
+            </button>
           </div>
           <p *ngIf="cart().length === 0 && !paidFolio()" class="empty-pos-msg">
             Elige tamaño, toppings y sabor para armar el pedido.
           </p>
           <div class="cart-item" *ngFor="let c of cart(); let i = index">
-            <div class="mini-scoop"></div>
+            <div class="scoop !w-12 !h-12 !min-w-[3rem] rounded-xl overflow-hidden shrink-0 bg-[#DFF0F7] flex items-center justify-center" [class]="getItemTone(c)">
+              <img *ngIf="getItemImage(c)" [src]="getItemImage(c)" [alt]="c.name" class="w-full h-full object-cover" />
+              <span *ngIf="!getItemImage(c)" class="text-xs font-bold text-[#011640]">{{ c.name[0] }}</span>
+            </div>
             <div>
               <strong>{{ c.name }}</strong>
               <small>
@@ -167,6 +177,7 @@ export class PosComponent {
   selectedPayment = signal('Efectivo');
   cart = signal<CartItem[]>([]);
   paidFolio = signal('');
+  lastTicket = signal<TicketData | null>(null);
   errorMsg = signal('');
   paying = signal(false);
 
@@ -176,6 +187,34 @@ export class PosComponent {
       (p) => !q || p.name.toLowerCase().includes(q) || p.flavor.toLowerCase().includes(q)
     );
   });
+
+  getItemImage(item: CartItem): string {
+    const found = this.productsService.products().find(
+      (p) => p.name === item.name || p.presentations?.some((pr) => pr.productId === item.productId)
+    );
+    return found?.image || '';
+  }
+
+  getItemTone(item: CartItem): string {
+    const found = this.productsService.products().find(
+      (p) => p.name === item.name || p.presentations?.some((pr) => pr.productId === item.productId)
+    );
+    return found?.tone || '';
+  }
+
+  clearPos() {
+    this.cart.set([]);
+    this.paidFolio.set('');
+    this.lastTicket.set(null);
+    this.errorMsg.set('');
+  }
+
+  printTicket() {
+    const ticket = this.lastTicket();
+    if (ticket) {
+      printFloamyTicket(ticket);
+    }
+  }
 
   selectPres(heladoId: number, presId: number) {
     this.selectedPresMap.update((m) => ({ ...m, [heladoId]: presId }));
@@ -248,13 +287,11 @@ export class PosComponent {
     const baseStock = Number(pres.stock ?? 0);
     if (baseStock <= 0) return 0;
 
-    // 1. Límite directo del producto (sabor + tamaño)
     const usedSameProduct = currentCart
       .filter((item) => item.productId === pres.productId)
       .reduce((sum, item) => sum + item.qty, 0);
     let remaining = Math.max(0, baseStock - usedSameProduct);
 
-    // 2. Límite por litros totales disponibles de ese sabor
     const stockLitros = prod.stockLitros;
     const litrosPorUnidad = Number(pres.litrosConsumidos || 0);
     if (stockLitros != null && litrosPorUnidad > 0) {
@@ -270,7 +307,6 @@ export class PosComponent {
       remaining = Math.min(remaining, remByLiters);
     }
 
-    // 3. Límite por empaques compartidos entre distintos sabores (ej. Cono o Vaso)
     const desechableId = pres.ingredienteDesechableId;
     const desechableStock = pres.desechableStock;
     if (desechableId != null && desechableStock != null) {
@@ -285,7 +321,6 @@ export class PosComponent {
       remaining = Math.min(remaining, remByDisposable);
     }
 
-    // 4. Límite por cucharas compartidas entre distintos tamaños y sabores
     const cucharaId = pres.cucharaIngredienteId;
     const cucharaStock = pres.cucharaStock;
     if (cucharaId != null && cucharaStock != null) {
@@ -300,7 +335,6 @@ export class PosComponent {
       remaining = Math.min(remaining, remBySpoon);
     }
 
-    // 5. Límite por stock de toppings seleccionados
     for (const tid of toppingIds) {
       const topObj = this.optionsService.toppings().find((t) => t.id === tid);
       if (topObj && topObj.stock != null) {
@@ -330,6 +364,7 @@ export class PosComponent {
     if (!pr || this.getRemainingUnits(p, pr, toppingIds) <= 0) return;
 
     this.paidFolio.set('');
+    this.lastTicket.set(null);
     this.errorMsg.set('');
 
     const toppings = this.selectedToppings().map((t) => t.nombre);
@@ -376,19 +411,39 @@ export class PosComponent {
     this.paying.set(true);
 
     const sub = this.subtotal();
+    const soldItems = [...this.cart()];
+    const method = this.selectedPayment();
+
     this.ordersService.createOrder({
       customer: 'Venta de mostrador',
       customerName: 'Venta de mostrador',
-      items: this.cart(),
+      items: soldItems,
       subtotal: sub,
       descuento: 0,
       total: sub,
-      paymentMethod: this.selectedPayment(),
+      paymentMethod: method,
       canal: 'Sucursal'
     }).subscribe({
       next: (res) => {
         this.paying.set(false);
         this.paidFolio.set(res.folio);
+        this.lastTicket.set({
+          folio: res.folio,
+          paymentFolio: res.paymentFolio,
+          customer: 'Venta de mostrador',
+          date: new Date().toLocaleString('es-MX'),
+          paymentMethod: method,
+          canal: 'Sucursal',
+          items: soldItems.map((i) => ({
+            name: i.name,
+            size: i.size,
+            qty: i.qty,
+            price: i.price,
+            toppings: i.toppings
+          })),
+          subtotal: sub,
+          total: res.total ?? sub
+        });
         this.cart.set([]);
         this.productsService.loadProducts().subscribe();
         this.optionsService.loadToppings().subscribe();

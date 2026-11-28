@@ -167,7 +167,7 @@ export class PresentationsComponent {
   selectedFile: File | null = null;
   private objectUrlToRevoke: string | null = null;
 
-  form = { nombre: '', precio: 55, stockInicial: 10, imagen_url: '' };
+  form = { nombre: '', precio: 55, stockInicial: 0, imagen_url: '' };
 
   openNew() {
     this.revokeObjectUrl();
@@ -175,7 +175,7 @@ export class PresentationsComponent {
     this.selectedFile = null;
     this.imageMode.set('file');
     this.previewUrl.set(null);
-    this.form = { nombre: '', precio: 55, stockInicial: 10, imagen_url: '' };
+    this.form = { nombre: '', precio: 55, stockInicial: 0, imagen_url: '' };
     this.modalOpen.set(true);
   }
 
@@ -186,7 +186,7 @@ export class PresentationsComponent {
     const currentUrl = p.imagen_url || '';
     this.imageMode.set(currentUrl ? 'url' : 'file');
     this.previewUrl.set(currentUrl || null);
-    this.form = { nombre: p.nombre, precio: p.precio, stockInicial: 10, imagen_url: currentUrl };
+    this.form = { nombre: p.nombre, precio: p.precio, stockInicial: 0, imagen_url: currentUrl };
     this.modalOpen.set(true);
   }
 

@@ -170,9 +170,9 @@ interface RecipeDraftLine {
           </div>
         </div>
 
-        <div>
+        <div *ngIf="!editingId()">
           <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">
-            {{ editingId() ? 'Stock actual (litros)' : 'Stock inicial (litros)' }}
+            Stock inicial (litros)
           </label>
           <input required
                  type="number"
@@ -314,7 +314,7 @@ interface RecipeDraftLine {
           <p *ngIf="maxProducableLitros() <= 0" class="mt-1.5 text-xs font-semibold text-red-700">
             No hay suficiente inventario para producir ni 0.5 L de este sabor. Surte insumos en compras o inventario.
           </p>
-          <p *ngElse-if="produceLitros() >= maxProducableLitros()" class="mt-1.5 text-[11px] font-semibold text-amber-700">
+          <p *ngIf="maxProducableLitros() > 0 && produceLitros() >= maxProducableLitros()" class="mt-1.5 text-[11px] font-semibold text-amber-700">
             Alcanzaste el límite máximo permitido por el inventario actual.
           </p>
         </div>
@@ -422,7 +422,6 @@ export class ProductsComponent implements OnInit {
       return 0;
     }
 
-    // Redondeo hacia abajo a 0.5 L para mantener pasos consistentes
     return Math.floor(maxLitros * 2) / 2;
   });
 

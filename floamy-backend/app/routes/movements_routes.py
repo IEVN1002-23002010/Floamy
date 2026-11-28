@@ -1,12 +1,14 @@
 from flask import Blueprint, request, jsonify
 from app.extensions import get_db_connection
-from app.services.stock_service import adjust_ingredient_stock
+from app.services.stock_service import adjust_ingredient_stock, sync_all_product_stocks
+from app.utils.decorators import token_required
 
 movements_bp = Blueprint("movements", __name__)
 
 
 @movements_bp.route("", methods=["GET"])
 @movements_bp.route("/", methods=["GET"])
+@token_required
 def list_movements():
     conn = get_db_connection()
     with conn.cursor() as cursor:
@@ -30,6 +32,7 @@ def list_movements():
 
 @movements_bp.route("", methods=["POST"])
 @movements_bp.route("/", methods=["POST"])
+@token_required
 def register_movement():
     data = request.get_json(silent=True) or {}
     qty = abs(float(data.get("cantidad", 0)))
@@ -42,9 +45,10 @@ def register_movement():
         with conn.cursor() as cursor:
             cursor.execute(
                 "INSERT INTO movimientos_ingredientes (ingrediente_id, tipo, cantidad, usuario_id) VALUES (%s, %s, %s, %s)",
-                (ing_id, tipo, delta, data.get("usuarioId"))
+                (ing_id, tipo, delta, data.get("usuarioId")),
             )
             adjust_ingredient_stock(cursor, ing_id, delta)
+            sync_all_product_stocks(cursor)
         conn.commit()
     except Exception as exc:
         try:
@@ -53,11 +57,12 @@ def register_movement():
             pass
         return jsonify({"error": f"No se pudo registrar el movimiento: {exc}"}), 400
 
-    return jsonify({"message": "Movimiento registrado"}), 201
+    return jsonify({"message": "Movimiento registrado y stock sincronizado"}), 201
 
 
 @movements_bp.route("/<int:mov_id>", methods=["PUT", "PATCH", "POST"])
 @movements_bp.route("/<int:mov_id>/", methods=["PUT", "PATCH", "POST"])
+@token_required
 def update_movement(mov_id):
     data = request.get_json(silent=True) or {}
     conn = get_db_connection()
@@ -87,6 +92,7 @@ def update_movement(mov_id):
                 """,
                 (new_ing, new_tipo, new_delta, mov_id),
             )
+            sync_all_product_stocks(cursor)
         conn.commit()
     except Exception as exc:
         try:
@@ -95,11 +101,12 @@ def update_movement(mov_id):
             pass
         return jsonify({"error": f"No se pudo actualizar el movimiento: {exc}"}), 400
 
-    return jsonify({"message": "Movimiento actualizado"})
+    return jsonify({"message": "Movimiento actualizado y stock sincronizado"})
 
 
 @movements_bp.route("/<int:mov_id>", methods=["DELETE"])
 @movements_bp.route("/<int:mov_id>/", methods=["DELETE"])
+@token_required
 def delete_movement(mov_id):
     conn = get_db_connection()
     try:
@@ -114,6 +121,7 @@ def delete_movement(mov_id):
 
             adjust_ingredient_stock(cursor, int(old["ingrediente_id"]), -old_delta)
             cursor.execute("DELETE FROM movimientos_ingredientes WHERE id = %s", (mov_id,))
+            sync_all_product_stocks(cursor)
         conn.commit()
     except Exception as exc:
         try:
@@ -122,4 +130,4 @@ def delete_movement(mov_id):
             pass
         return jsonify({"error": f"No se pudo eliminar el movimiento: {exc}"}), 400
 
-    return jsonify({"message": "Movimiento eliminado"})
+    return jsonify({"message": "Movimiento eliminado y stock sincronizado"})

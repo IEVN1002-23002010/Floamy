@@ -1,11 +1,74 @@
-from flask import Blueprint, request, jsonify
+import base64
+import hashlib
+import hmac
+import os
+from flask import Blueprint, current_app, request, jsonify
 from app.extensions import get_db_connection
+from app.utils.decorators import token_required
 
 clients_bp = Blueprint("clients", __name__)
 
 
+def _get_phone_key() -> bytes:
+    secret = ""
+    try:
+        secret = str(current_app.config.get("SECRET_KEY") or "")
+    except RuntimeError:
+        pass
+    if not secret:
+        secret = os.environ.get("SECRET_KEY", "floamy-secret-key-jwt-2026-leon-gto-secure")
+    return hashlib.sha256(secret.encode("utf-8")).digest()
+
+
+def _keystream(key: bytes, iv: bytes, length: int) -> bytes:
+    out = bytearray()
+    counter = 0
+    while len(out) < length:
+        block = hashlib.sha256(key + iv + counter.to_bytes(4, "big")).digest()
+        out.extend(block)
+        counter += 1
+    return bytes(out[:length])
+
+
+def encrypt_phone(phone: str) -> str:
+    clean = (phone or "").strip()
+    if not clean or clean.startswith("enc:"):
+        return clean
+    key = _get_phone_key()
+    iv = os.urandom(16)
+    raw = clean.encode("utf-8")
+    stream = _keystream(key, iv, len(raw))
+    cipher = bytes(a ^ b for a, b in zip(raw, stream))
+    tag = hmac.new(key, iv + cipher, hashlib.sha256).digest()[:16]
+    token = base64.urlsafe_b64encode(iv + tag + cipher).decode("ascii")
+    return f"enc:{token}"
+
+
+def decrypt_phone(stored: str) -> str:
+    val = (stored or "").strip()
+    if not val:
+        return "—"
+    if not val.startswith("enc:"):
+        return val
+    try:
+        blob = base64.urlsafe_b64decode(val[4:].encode("ascii"))
+        if len(blob) < 32:
+            return "—"
+        iv, tag, cipher = blob[:16], blob[16:32], blob[32:]
+        key = _get_phone_key()
+        expected_tag = hmac.new(key, iv + cipher, hashlib.sha256).digest()[:16]
+        if not hmac.compare_digest(tag, expected_tag):
+            return "—"
+        stream = _keystream(key, iv, len(cipher))
+        raw = bytes(a ^ b for a, b in zip(cipher, stream))
+        return raw.decode("utf-8")
+    except Exception:
+        return "—"
+
+
 @clients_bp.route("", methods=["GET"])
 @clients_bp.route("/", methods=["GET"])
+@token_required
 def list_clients():
     conn = get_db_connection()
     with conn.cursor() as cursor:
@@ -50,7 +113,8 @@ def list_clients():
         cid = r.get("id")
         nombre = r.get("nombre") or r.get("nombre_completo") or r.get("name") or "Cliente"
         correo = r.get("correo") or r.get("email") or ""
-        telefono = r.get("telefono") or r.get("phone") or "—"
+        raw_tel = r.get("telefono") or r.get("phone") or ""
+        telefono = decrypt_phone(raw_tel) if raw_tel else "—"
 
         base_pedidos = int(r.get("pedidos_totales") or r.get("pedidos") or 0)
         base_gastado = float(r.get("total_gastado") or r.get("gastado") or 0)
@@ -75,6 +139,9 @@ def list_clients():
             "correo": correo,
             "phone": telefono,
             "telefono": telefono,
+            "edad": r.get("edad"),
+            "genero": r.get("genero") or "",
+            "zona": r.get("zona") or "",
             "orders": pedidos,
             "pedidos": pedidos,
             "spent": gastado,
@@ -88,14 +155,21 @@ def list_clients():
 
 @clients_bp.route("", methods=["POST"])
 @clients_bp.route("/", methods=["POST"])
+@token_required
 def create_client():
     data = request.get_json(silent=True) or {}
     nombre = (data.get("nombre") or data.get("name") or "").strip()
     correo = (data.get("correo") or data.get("email") or "").strip()
     telefono = (data.get("telefono") or data.get("phone") or "").strip()
+    zona = (data.get("zona") or "").strip() or None
+    genero = (data.get("genero") or "").strip() or None
+    raw_edad = data.get("edad")
+    edad = int(raw_edad) if str(raw_edad or "").isdigit() and int(raw_edad) > 0 else None
 
     if not nombre or not correo:
         return jsonify({"error": "Nombre y correo son obligatorios"}), 400
+
+    encrypted_phone = encrypt_phone(telefono) if telefono else None
 
     conn = get_db_connection()
     try:
@@ -122,10 +196,20 @@ def create_client():
 
             if "telefono" in cols:
                 insert_cols.append("telefono")
-                insert_vals.append(telefono)
+                insert_vals.append(encrypted_phone)
             elif "phone" in cols:
                 insert_cols.append("phone")
-                insert_vals.append(telefono)
+                insert_vals.append(encrypted_phone)
+
+            if "edad" in cols:
+                insert_cols.append("edad")
+                insert_vals.append(edad)
+            if "genero" in cols:
+                insert_cols.append("genero")
+                insert_vals.append(genero)
+            if "zona" in cols:
+                insert_cols.append("zona")
+                insert_vals.append(zona)
 
             if "pedidos_totales" in cols:
                 insert_cols.append("pedidos_totales")
@@ -149,6 +233,7 @@ def create_client():
 
 
 @clients_bp.delete("/<int:client_id>")
+@token_required
 def delete_client(client_id):
     conn = get_db_connection()
     try:

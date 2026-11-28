@@ -3,6 +3,19 @@ import { RouterLink } from '@angular/router';
 import { NgFor, NgIf } from '@angular/common';
 import { DashboardService } from '../../../core/services/dashboard.service';
 import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
+import {
+  DashboardSummary,
+  SaborChartItem,
+  PresentacionChartItem,
+  EvolucionVentaPoint
+} from '../../../core/models/dashboard.model';
+
+interface ChartPoint extends EvolucionVentaPoint {
+  x: number;
+  y: number;
+  xPct: number;
+  yPct: number;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -11,8 +24,8 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
   styles: [`
     .sales-chart-wrap {
       display: grid;
-      grid-template-columns: 42px 1fr;
-      gap: 8px;
+      grid-template-columns: 44px 1fr;
+      gap: 10px;
       align-items: stretch;
     }
     .y-axis {
@@ -21,19 +34,18 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
       justify-content: space-between;
       font-size: 11px;
       color: var(--muted);
-      padding: 6px 0 24px;
+      height: 190px;
       text-align: right;
     }
     .svg-box svg {
       width: 100%;
-      height: 195px;
+      height: 190px;
       display: block;
-      overflow: visible;
     }
     .x-axis {
       display: flex;
       justify-content: space-between;
-      padding: 6px 6px 0;
+      padding: 8px 4px 0;
       font-size: 11px;
       color: var(--muted);
     }
@@ -43,15 +55,23 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
       <div>
         <span class="eyebrow">RESUMEN EJECUTIVO</span>
         <h1 class="text-2xl sm:text-3xl font-bold text-[#011640] mt-0.5">Todo fluye, Andrea</h1>
-        <p class="text-xs sm:text-sm text-slate-500 mt-1">Métricas conectadas en tiempo real con MySQL.</p>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">Métricas operativas y comerciales conectadas en tiempo real con MySQL.</p>
       </div>
-      <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full">
-        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-        Sincronizado en vivo
-      </span>
+      <div class="flex items-center gap-2.5">
+        <a routerLink="/admin/marketing"
+           class="px-3.5 py-1.5 text-xs font-semibold text-[#011640] bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition"
+           style="text-decoration:none;">
+          Campañas y ROI ({{ publicidad().roi }}%) →
+        </a>
+        <span class="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          Sincronizado en vivo
+        </span>
+      </div>
     </div>
 
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+    <!-- Fila 1: 6 KPIs principales -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-5">
       <div class="p-5 rounded-2xl bg-[#011640] text-white border border-[#011640] shadow-sm flex flex-col justify-between gap-2">
         <div class="flex items-center justify-between">
           <span class="bg-white/15 text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-full">↗ Activo</span>
@@ -107,8 +127,99 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
       </div>
     </section>
 
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5">
-      <div class="lg:col-span-7 p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
+    <!-- Fila 2: Meta comercial + Tasa de conversión -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5 items-stretch">
+      <div class="lg:col-span-7 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col justify-between gap-4">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <span class="eyebrow">META COMERCIAL • {{ metaVentas().periodo }}</span>
+            <h2 class="text-base font-bold text-[#011640] mt-0.5">Avance contra meta de ventas</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Comparativa en tiempo real entre ingresos acumulados y objetivo mensual.</p>
+          </div>
+          <a routerLink="/admin/marketing"
+             class="px-3 py-1.5 text-xs font-semibold text-[#011640] bg-[#e8f2f8] hover:bg-[#d7e8f3] rounded-xl transition"
+             style="text-decoration:none;">
+            Configurar meta →
+          </a>
+        </div>
+
+        <div>
+          <div class="flex items-end justify-between mb-2">
+            <div>
+              <strong class="text-2xl font-extrabold text-[#011640]">{{ metaVentas().actual | currencyMxn }}</strong>
+              <span class="text-xs text-slate-500 ml-1.5">de {{ metaVentas().objetivo | currencyMxn }}</span>
+            </div>
+            <span class="text-xs font-extrabold px-2.5 py-1 rounded-full"
+                  [class]="metaVentas().porcentaje_real >= 100 ? 'bg-emerald-100 text-emerald-800' : 'bg-[#dff0f7] text-[#011640]'">
+              {{ metaVentas().porcentaje_real }}% completado
+            </span>
+          </div>
+
+          <div class="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-200/70">
+            <div class="h-full rounded-full transition-all duration-700"
+                 [style.width.%]="metaVentas().porcentaje"
+                 [style.background]="metaVentas().porcentaje_real >= 100 ? '#10b981' : 'linear-gradient(90deg, #011640 0%, #6DA0BF 100%)'"></div>
+          </div>
+
+          <div class="flex justify-between text-xs text-slate-500 mt-2">
+            <span>Inicio: $0.00</span>
+            <span *ngIf="metaVentas().restante > 0">Faltan <strong class="text-[#011640]">{{ metaVentas().restante | currencyMxn }}</strong> para alcanzar la meta</span>
+            <span *ngIf="metaVentas().restante <= 0" class="text-emerald-700 font-bold">¡Meta comercial superada!</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-5 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col justify-between gap-4">
+        <div class="flex items-start justify-between">
+          <div>
+            <span class="eyebrow">EMBUDO DIGITAL</span>
+            <h2 class="text-base font-bold text-[#011640] mt-0.5">Tasa de conversión</h2>
+            <p class="text-xs text-slate-500 mt-0.5">De visitas en tienda a pedidos concretados.</p>
+          </div>
+          <span class="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-3 py-1 rounded-full">
+            {{ conversion().tasa }}%
+          </span>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="font-semibold text-slate-600">1. Visitas totales a tienda</span>
+              <strong class="text-[#011640]">{{ conversion().visitas }} visitas</strong>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+              <div class="h-2.5 rounded-full bg-[#6DA0BF]" style="width: 100%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="font-semibold text-slate-600">2. Pedidos confirmados</span>
+              <strong class="text-[#011640]">{{ conversion().compras }} compras ({{ conversion().tasa }}%)</strong>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+              <div class="h-2.5 rounded-full bg-[#011640] transition-all duration-500"
+                   [style.width.%]="Math.min(100, conversion().tasa)"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-100 text-xs">
+          <div class="p-2.5 rounded-xl bg-slate-50">
+            <span class="text-slate-400 block text-[11px]">Tráfico PWA Web</span>
+            <strong class="text-[#011640] font-bold">{{ conversion().visitas_pwa }} sesiones</strong>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50">
+            <span class="text-slate-400 block text-[11px]">Tráfico Sucursal / QR</span>
+            <strong class="text-[#011640] font-bold">{{ conversion().visitas_sucursal }} sesiones</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fila 3: Evolución de ventas + Ventas por sabor -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5 items-stretch">
+      <div class="lg:col-span-7 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col justify-between">
         <div class="flex items-start justify-between mb-4">
           <div>
             <h2 class="text-base font-bold text-[#011640]">Evolución de ventas</h2>
@@ -124,44 +235,44 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
           <div class="y-axis">
             <span *ngFor="let label of salesChart().yLabels">{{ label }}</span>
           </div>
-          <div class="svg-box relative">
-            <div *ngIf="hoveredPoint() as hp"
-                 [style.left.%]="(hp.x / 600) * 100"
-                 [style.top.px]="hp.y < 38 ? hp.y + 12 : hp.y - 34"
-                 class="pointer-events-none absolute -translate-x-1/2 z-10 px-2.5 py-1 text-xs font-bold text-white bg-[#011640] rounded-lg shadow-md whitespace-nowrap">
-              {{ hp.dia }}: {{ hp.total | currencyMxn }}
+          <div class="svg-box">
+            <div class="relative h-[190px] w-full">
+              <div *ngIf="hoveredPoint() as hp"
+                   [style.left.%]="hp.xPct"
+                   [style.top.%]="hp.yPct < 22 ? hp.yPct + 8 : hp.yPct - 18"
+                   class="pointer-events-none absolute -translate-x-1/2 z-10 px-2.5 py-1 text-xs font-bold text-white bg-[#011640] rounded-lg shadow-md whitespace-nowrap">
+                {{ hp.dia }}: {{ hp.total | currencyMxn }}
+              </div>
+
+              <svg viewBox="0 0 600 200" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="floamySalesGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#6DA0BF" stop-opacity="0.32" />
+                    <stop offset="100%" stop-color="#6DA0BF" stop-opacity="0.01" />
+                  </linearGradient>
+                </defs>
+
+                <line *ngFor="let gy of salesChart().gridYs"
+                      x1="0" [attr.y1]="gy" x2="600" [attr.y2]="gy"
+                      stroke="#e6edf3" stroke-dasharray="3 3" stroke-width="1"
+                      vector-effect="non-scaling-stroke" />
+
+                <path [attr.d]="salesChart().areaPath" fill="url(#floamySalesGrad)" />
+                <path [attr.d]="salesChart().linePath" fill="none" stroke="#6DA0BF" stroke-width="2.8"
+                      stroke-linecap="round" vector-effect="non-scaling-stroke" />
+              </svg>
+
+              <button *ngFor="let pt of salesChart().points"
+                      type="button"
+                      (mouseenter)="hoveredPoint.set(pt)"
+                      (mouseleave)="hoveredPoint.set(null)"
+                      [style.left.%]="pt.xPct"
+                      [style.top.%]="pt.yPct"
+                      [class]="hoveredPoint()?.dia === pt.dia || salesChart().lastPoint?.dia === pt.dia
+                        ? 'absolute -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[#011640] border-2 border-white shadow-sm cursor-pointer transition-transform scale-110'
+                        : 'absolute -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-[#011640] cursor-pointer hover:scale-125 transition-transform'">
+              </button>
             </div>
-
-            <svg viewBox="0 0 600 200" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="floamySalesGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#6DA0BF" stop-opacity="0.32" />
-                  <stop offset="100%" stop-color="#6DA0BF" stop-opacity="0.01" />
-                </linearGradient>
-              </defs>
-
-              <line *ngFor="let gy of salesChart().gridYs"
-                    x1="8" [attr.y1]="gy" x2="592" [attr.y2]="gy"
-                    stroke="#e6edf3" stroke-dasharray="3 3" stroke-width="1" />
-
-              <path [attr.d]="salesChart().areaPath" fill="url(#floamySalesGrad)" />
-              <path [attr.d]="salesChart().linePath" fill="none" stroke="#6DA0BF" stroke-width="3" stroke-linecap="round" />
-
-              <g *ngFor="let pt of salesChart().points"
-                 (mouseenter)="hoveredPoint.set(pt)"
-                 (mouseleave)="hoveredPoint.set(null)"
-                 style="cursor: pointer;">
-                <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="12" fill="transparent" />
-                <circle [attr.cx]="pt.x"
-                        [attr.cy]="pt.y"
-                        [attr.r]="hoveredPoint()?.dia === pt.dia || salesChart().lastPoint?.dia === pt.dia ? 5.5 : 4.5"
-                        [attr.fill]="hoveredPoint()?.dia === pt.dia || salesChart().lastPoint?.dia === pt.dia ? '#011640' : '#ffffff'"
-                        [attr.stroke]="hoveredPoint()?.dia === pt.dia || salesChart().lastPoint?.dia === pt.dia ? '#ffffff' : '#011640'"
-                        stroke-width="2.2">
-                  <title>{{ pt.dia }}: {{ pt.total | currencyMxn }}</title>
-                </circle>
-              </g>
-            </svg>
 
             <div class="x-axis">
               <span *ngFor="let pt of salesChart().points">{{ pt.dia }}</span>
@@ -170,21 +281,22 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
         </div>
       </div>
 
-      <div class="lg:col-span-5 p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
+      <div class="lg:col-span-5 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col justify-between">
         <div class="flex items-start justify-between mb-4">
           <div>
             <h2 class="text-base font-bold text-[#011640]">Ventas por sabor</h2>
             <p class="text-xs text-slate-500 mt-0.5">Participación del periodo</p>
           </div>
         </div>
-        <div class="donut-row">
-          <div class="donut" [style.background]="donutGradient()">
+
+        <div class="flex-1 flex items-center justify-between gap-5 my-auto">
+          <div class="donut shrink-0" [style.background]="donutGradient()">
             <div><strong>{{ summary()?.kpis?.pedidos || 0 }}</strong><span>pedidos</span></div>
           </div>
-          <div class="legend">
+          <div class="legend flex-1 min-w-0">
             <div *ngFor="let f of flavors()">
               <i [style.background]="f.color"></i>
-              <span>{{ f.name }}</span>
+              <span class="truncate">{{ f.name }}</span>
               <strong>{{ f.value }}%</strong>
             </div>
           </div>
@@ -192,8 +304,9 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
       </div>
     </section>
 
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5">
-      <div class="lg:col-span-7 p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
+    <!-- Fila 4: Ventas por presentación + Estado de pedidos -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5 items-stretch">
+      <div class="lg:col-span-7 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col justify-between">
         <div class="flex items-start justify-between mb-5">
           <div>
             <h2 class="text-base font-bold text-[#011640]">Ventas por presentación</h2>
@@ -201,7 +314,7 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
           </div>
         </div>
 
-        <div class="flex flex-col gap-4 py-2">
+        <div class="flex flex-col gap-4 my-auto">
           <div *ngFor="let item of presentationsList()"
                class="grid grid-cols-[110px_1fr_46px] items-center gap-3.5">
             <span class="text-xs font-bold text-[#011640] truncate">{{ item.name }}</span>
@@ -215,7 +328,7 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
         </div>
       </div>
 
-      <div class="lg:col-span-5 p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
+      <div class="lg:col-span-5 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col justify-between">
         <div class="flex items-start justify-between mb-4">
           <div>
             <h2 class="text-base font-bold text-[#011640]">Estado de pedidos</h2>
@@ -227,7 +340,7 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
           </a>
         </div>
 
-        <div class="flex flex-col gap-3.5">
+        <div class="flex flex-col gap-3.5 my-auto">
           <div *ngFor="let st of orderStatusBars()">
             <div class="flex justify-between text-xs mb-1.5">
               <span class="font-semibold text-slate-500">{{ st.label }}</span>
@@ -243,7 +356,58 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
       </div>
     </section>
 
-    <section class="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
+    <!-- Fila 5: Demografía de clientes -->
+    <section class="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm mb-5">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+        <div>
+          <span class="eyebrow">SEGMENTACIÓN DE CLIENTES</span>
+          <h2 class="text-base font-bold text-[#011640] mt-0.5">Perfil demográfico</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Distribución por rango de edad y género de clientes registrados.</p>
+        </div>
+        <span class="bg-[#dff0f7] text-[#011640] text-xs font-bold px-3 py-1 rounded-full">
+          {{ demografia().total_clientes_perfilados }} clientes perfilados
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+        <div class="p-5 rounded-2xl bg-slate-50/70 border border-slate-100 flex flex-col justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-[#011640] mb-4">Por rango de edad</h3>
+          <div class="space-y-3.5">
+            <div *ngFor="let item of demografia().rangos_edad">
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-600">{{ item.label }}</span>
+                <strong class="text-[#011640]">{{ item.count }} ({{ item.pct }}%)</strong>
+              </div>
+              <div class="w-full bg-slate-200/70 rounded-full h-2.5 overflow-hidden">
+                <div class="h-2.5 rounded-full transition-all duration-500"
+                     [style.width.%]="item.pct"
+                     [style.background]="item.color"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-50/70 border border-slate-100 flex flex-col justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-[#011640] mb-4">Por género</h3>
+          <div class="space-y-3.5 my-auto">
+            <div *ngFor="let item of demografia().generos">
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-600">{{ item.label }}</span>
+                <strong class="text-[#011640]">{{ item.count }} ({{ item.pct }}%)</strong>
+              </div>
+              <div class="w-full bg-slate-200/70 rounded-full h-2.5 overflow-hidden">
+                <div class="h-2.5 rounded-full transition-all duration-500"
+                     [style.width.%]="item.pct"
+                     [style.background]="item.color"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fila 6: Alertas de inventario -->
+    <section class="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
       <div class="flex items-center justify-between gap-4 mb-4">
         <div>
           <h2 class="text-base font-bold text-[#011640]">Alertas de inventario</h2>
@@ -280,10 +444,59 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
 })
 export class DashboardComponent implements OnInit {
   private dashService = inject(DashboardService);
-  summary = signal<any>(null);
-  hoveredPoint = signal<any>(null);
+  protected Math = Math;
 
-  private defaultFlavors = [
+  summary = signal<DashboardSummary | null>(null);
+  hoveredPoint = signal<ChartPoint | null>(null);
+
+  metaVentas = computed(() => {
+    return (
+      this.summary()?.marketing?.meta_ventas || {
+        periodo: 'Noviembre 2026',
+        objetivo: 18000,
+        actual: 0,
+        restante: 18000,
+        porcentaje: 0,
+        porcentaje_real: 0
+      }
+    );
+  });
+
+  publicidad = computed(() => {
+    return (
+      this.summary()?.marketing?.publicidad || {
+        inversion_total: 0,
+        ingresos_atribuidos: 0,
+        roi: 0,
+        roas: 0,
+        campanas: []
+      }
+    );
+  });
+
+  conversion = computed(() => {
+    return (
+      this.summary()?.marketing?.conversion || {
+        visitas: 0,
+        compras: 0,
+        tasa: 0,
+        visitas_pwa: 0,
+        visitas_sucursal: 0
+      }
+    );
+  });
+
+  demografia = computed(() => {
+    return (
+      this.summary()?.marketing?.demografia || {
+        total_clientes_perfilados: 0,
+        rangos_edad: [],
+        generos: []
+      }
+    );
+  });
+
+  private defaultFlavors: SaborChartItem[] = [
     { name: 'Vainilla', value: 31, color: '#6DA0BF' },
     { name: 'Chocolate', value: 24, color: '#011640' },
     { name: 'Fresa', value: 19, color: '#AAC8E0' },
@@ -291,7 +504,7 @@ export class DashboardComponent implements OnInit {
     { name: 'Limón', value: 11, color: '#BFD79B' }
   ];
 
-  flavors = computed(() => {
+  flavors = computed<SaborChartItem[]>(() => {
     const list = this.summary()?.sabores;
     return Array.isArray(list) && list.length > 0 ? list : this.defaultFlavors;
   });
@@ -299,7 +512,7 @@ export class DashboardComponent implements OnInit {
   donutGradient = computed(() => {
     const list = this.flavors();
     let acc = 0;
-    const stops = list.map((f: any) => {
+    const stops = list.map((f) => {
       const start = acc;
       acc += Number(f.value || 0);
       return `${f.color} ${start}% ${Math.min(100, acc)}%`;
@@ -307,7 +520,7 @@ export class DashboardComponent implements OnInit {
     return `conic-gradient(${stops.join(', ')})`;
   });
 
-  presentationsList = computed(() => {
+  presentationsList = computed<PresentacionChartItem[]>(() => {
     const list = this.summary()?.presentaciones;
     if (Array.isArray(list) && list.length > 0) {
       return list;
@@ -333,7 +546,7 @@ export class DashboardComponent implements OnInit {
   });
 
   salesChart = computed(() => {
-    const raw: Array<{ dia: string; total: number }> = this.summary()?.evolucion_ventas || [
+    const raw: EvolucionVentaPoint[] = this.summary()?.evolucion_ventas || [
       { dia: 'Lun', total: 0 },
       { dia: 'Mar', total: 0 },
       { dia: 'Mié', total: 0 },
@@ -360,17 +573,24 @@ export class DashboardComponent implements OnInit {
       '$0'
     ];
 
-    const left = 10;
-    const right = 590;
-    const top = 14;
-    const bottom = 186;
+    const left = 12;
+    const right = 588;
+    const top = 16;
+    const bottom = 184;
     const gridYs = [0, 0.25, 0.5, 0.75, 1].map((t) => Math.round(top + t * (bottom - top)));
 
-    const points = raw.map((d, i) => {
+    const points: ChartPoint[] = raw.map((d, i) => {
       const val = Number(d.total || 0);
       const x = left + (i * (right - left)) / Math.max(1, raw.length - 1);
       const y = bottom - (val / yMax) * (bottom - top);
-      return { dia: d.dia, total: val, x, y };
+      return {
+        dia: d.dia,
+        total: val,
+        x,
+        y,
+        xPct: (x / 600) * 100,
+        yPct: (y / 200) * 100
+      };
     });
 
     let linePath = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
@@ -390,13 +610,12 @@ export class DashboardComponent implements OnInit {
 
     const lastIdx = points.length - 1;
     const areaPath = `${linePath} L ${points[lastIdx].x.toFixed(1)} ${bottom} L ${points[0].x.toFixed(1)} ${bottom} Z`;
-
     const lastActive = [...points].reverse().find((p) => p.total > 0) || points[lastIdx];
 
     return { yLabels, gridYs, points, linePath, areaPath, lastPoint: lastActive };
   });
 
   ngOnInit() {
-    this.dashService.getSummary().subscribe((data) => this.summary.set(data));
+    this.dashService.getSummary().subscribe((data: DashboardSummary) => this.summary.set(data));
   }
 }

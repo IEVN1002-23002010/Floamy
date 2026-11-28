@@ -1,6 +1,7 @@
 from datetime import datetime, date
 from flask import Blueprint, request, jsonify
 from app.extensions import get_db_connection
+from app.utils.decorators import token_required
 
 cash_register_bp = Blueprint("cash_register", __name__)
 
@@ -141,6 +142,7 @@ def calculate_day_totals(cursor, target_date: date) -> dict:
 
 
 @cash_register_bp.get("/summary")
+@token_required
 def get_summary():
     raw_date = (request.args.get("fecha") or "").strip()
     conn = get_db_connection()
@@ -164,6 +166,7 @@ def get_summary():
 
 @cash_register_bp.get("/")
 @cash_register_bp.get("")
+@token_required
 def list_closures():
     conn = get_db_connection()
     with conn.cursor() as cursor:
@@ -202,6 +205,7 @@ def list_closures():
 
 @cash_register_bp.post("/")
 @cash_register_bp.post("")
+@token_required
 def create_closure():
     data = request.get_json(silent=True) or {}
     fondo_inicial = round(float(data.get("fondo_inicial") or 0), 2)
@@ -269,6 +273,7 @@ def create_closure():
 
 
 @cash_register_bp.delete("/<int:corte_id>")
+@token_required
 def delete_closure(corte_id):
     conn = get_db_connection()
     try:

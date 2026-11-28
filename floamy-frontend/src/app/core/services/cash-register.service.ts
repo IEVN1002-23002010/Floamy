@@ -9,6 +9,9 @@ export interface CashDaySummary {
   ventas_tarjeta: number;
   ventas_transferencia: number;
   total_ventas: number;
+  egresos_proveedores: number;
+  egresos_efectivo: number;
+  saldo_disponible: number;
   cortes_hoy: number;
 }
 

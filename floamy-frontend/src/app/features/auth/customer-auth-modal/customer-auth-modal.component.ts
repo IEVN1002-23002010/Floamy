@@ -53,6 +53,24 @@ import { LogoComponent } from '../../../shared/components/logo/logo.component';
                      class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5" />
             </div>
 
+            <div *ngIf="mode() === 'register'" class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block mb-1 text-xs font-semibold text-[#0b234a]">Edad (opcional)</label>
+                <input type="number" min="12" max="100" name="edad" [(ngModel)]="form.edad" placeholder="Ej. 24"
+                       class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5" />
+              </div>
+              <div>
+                <label class="block mb-1 text-xs font-semibold text-[#0b234a]">Género (opcional)</label>
+                <select name="genero" [(ngModel)]="form.genero"
+                        class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5">
+                  <option value="">Prefiero no decir</option>
+                  <option value="Femenino">Femenino</option>
+                  <option value="Masculino">Masculino</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+            </div>
+
             <div>
               <label class="block mb-1 text-xs font-semibold text-[#0b234a]">Contraseña</label>
               <input required type="password" name="password" [(ngModel)]="form.password" placeholder="••••••••"
@@ -96,6 +114,8 @@ export class CustomerAuthModalComponent implements OnInit {
     nombre: '',
     correo: '',
     telefono: '',
+    edad: null as number | null,
+    genero: '',
     password: ''
   };
 
@@ -114,7 +134,14 @@ export class CustomerAuthModalComponent implements OnInit {
 
     const request$ = this.mode() === 'login'
       ? this.auth.login(this.form.correo, this.form.password)
-      : this.auth.registerClient(this.form);
+      : this.auth.registerClient({
+          nombre: this.form.nombre,
+          correo: this.form.correo,
+          telefono: this.form.telefono,
+          edad: this.form.edad,
+          genero: this.form.genero,
+          password: this.form.password
+        });
 
     request$.subscribe({
       next: () => {

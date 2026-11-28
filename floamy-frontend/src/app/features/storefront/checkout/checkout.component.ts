@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ProductsService } from '../../../core/services/products.service';
 import { OrdersService } from '../../../core/services/orders.service';
 import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/customer-auth-modal.component';
+import { printFloamyTicket, TicketData } from '../../../shared/utils/ticket-printer';
 
 @Component({
   selector: 'app-checkout',
@@ -104,7 +105,6 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
               <article *ngFor="let item of items(); let i = index"
                        class="bg-white/95 border border-[#AAC8E0]/80 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5 min-w-0">
-                  <!-- Foto real del sabor -->
                   <div class="scoop shrink-0 !w-14 !h-14 rounded-2xl overflow-hidden bg-[#DFF0F7] ring-2 ring-[#F7F3E9] shadow-xs flex items-center justify-center"
                        [class]="getItemTone(item)">
                     <img *ngIf="getItemImage(item)"
@@ -140,7 +140,6 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
                 </div>
 
                 <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 shrink-0">
-                  <!-- Cápsula de cantidad estilo píldora -->
                   <div class="inline-flex items-center gap-2 bg-white border border-slate-300 rounded-full px-2.5 py-1 shadow-2xs">
                     <button type="button"
                             (click)="updateQty(i, -1)"
@@ -157,7 +156,6 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
                     </button>
                   </div>
 
-                  <!-- Botón Quitar en rojo tipo píldora -->
                   <button type="button"
                           (click)="removeItem(i)"
                           class="px-4 py-1.5 rounded-full bg-[#E63946] hover:bg-[#cf2c39] text-white text-xs font-bold transition shadow-xs cursor-pointer">
@@ -297,6 +295,28 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
             </ng-template>
           </aside>
         </section>
+
+        <!-- BANNER DE COMPROBANTE RECIENTE -->
+        <div *ngIf="lastReceipt() as rec"
+             class="p-5 rounded-3xl bg-emerald-50 border-2 border-emerald-300 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+          <div>
+            <span class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">¡Pedido confirmado!</span>
+            <h3 class="text-lg font-extrabold text-[#011640]">Folio {{ rec.folio }} · Total \${{ rec.total.toFixed(2) }} MXN</h3>
+            <p class="text-xs text-slate-600">Tu orden ya entró a preparación en barra.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button"
+                    (click)="downloadReceipt()"
+                    class="px-4 py-2.5 text-xs font-bold text-white bg-[#011640] hover:bg-[#0b2859] rounded-xl transition cursor-pointer">
+              🖨️ Imprimir / Guardar comprobante
+            </button>
+            <button type="button"
+                    (click)="lastReceipt.set(null)"
+                    class="w-8 h-8 rounded-xl bg-white text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer">
+              ✕
+            </button>
+          </div>
+        </div>
 
         <!-- BLOQUE INFERIOR: SEGUIMIENTO EN VIVO -->
         <section id="historial-pedidos" class="pt-8 border-t border-[#011640]/15 space-y-6">
@@ -469,6 +489,7 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   items = signal<any[]>([]);
   myOrders = signal<any[]>([]);
   searchedOrder = signal<any | null>(null);
+  lastReceipt = signal<TicketData | null>(null);
   selectedMethod = signal('Efectivo');
   discountRate = signal(0);
   couponMsg = signal<{ type: 'ok' | 'err'; text: string } | null>(null);
@@ -541,6 +562,13 @@ export class CheckoutComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
+    }
+  }
+
+  downloadReceipt() {
+    const rec = this.lastReceipt();
+    if (rec) {
+      printFloamyTicket(rec);
     }
   }
 
@@ -746,12 +774,25 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     this.orderError.set('');
     this.submitting.set(true);
 
+    const custName = this.customerName.trim() || user.nombre;
+    const payMethod = this.selectedMethod();
+    const subVal = this.subtotal();
+    const discVal = this.discountAmount();
+    const totalVal = this.total();
+    const orderedItems = this.items().map((i) => ({
+      name: i.name || i.nombre,
+      size: i.size || i.tamano || 'Vaso 8 oz',
+      qty: Number(i.qty || i.cantidad || i.quantity || 1),
+      price: Number(i.price || i.precio || 0),
+      toppings: i.toppings || []
+    }));
+
     const payload = {
-      customer: this.customerName.trim() || user.nombre,
+      customer: custName,
       usuario_id: user.id,
       correo: user.correo,
-      paymentMethod: this.selectedMethod(),
-      total: this.total(),
+      paymentMethod: payMethod,
+      total: totalVal,
       items: this.items().map((i) => ({
         id: i.id,
         productId: i.productId || i.producto_id || i.id,
@@ -765,8 +806,20 @@ export class CheckoutComponent implements OnInit, OnDestroy {
     };
 
     this.ordersService.createOrder(payload).subscribe({
-      next: () => {
+      next: (res) => {
         this.submitting.set(false);
+        this.lastReceipt.set({
+          folio: res.folio,
+          paymentFolio: res.paymentFolio,
+          customer: custName,
+          date: new Date().toLocaleString('es-MX'),
+          paymentMethod: payMethod,
+          canal: 'PWA Web',
+          items: orderedItems,
+          subtotal: subVal,
+          discount: discVal,
+          total: res.total ?? totalVal
+        });
         this.items.set([]);
         localStorage.removeItem(this.getCartKey());
         this.loadMyOrders(true);

@@ -1,11 +1,13 @@
 from flask import Blueprint, request, jsonify
 from app.extensions import get_db_connection
-from app.services.stock_service import adjust_ingredient_stock
+from app.services.stock_service import adjust_ingredient_stock, sync_all_product_stocks
+from app.utils.decorators import token_required
 
 inventory_bp = Blueprint("inventory", __name__)
 
 
 @inventory_bp.get("/")
+@token_required
 def list_ingredients():
     conn = get_db_connection()
     with conn.cursor() as cursor:
@@ -27,6 +29,7 @@ def list_ingredients():
 
 
 @inventory_bp.post("/")
+@token_required
 def add_ingredient():
     data = request.get_json() or {}
     prov_id = data.get("proveedor_id") or data.get("proveedorId")
@@ -49,7 +52,7 @@ def add_ingredient():
                     data.get("unit", "L").strip(),
                     costo,
                     prov_id,
-                )
+                ),
             )
         conn.commit()
     except Exception as exc:
@@ -63,6 +66,7 @@ def add_ingredient():
 
 
 @inventory_bp.put("/<int:ing_id>")
+@token_required
 def update_ingredient(ing_id):
     data = request.get_json() or {}
     prov_id = data.get("proveedor_id") or data.get("proveedorId")
@@ -88,7 +92,7 @@ def update_ingredient(ing_id):
                     costo,
                     prov_id,
                     ing_id,
-                )
+                ),
             )
         conn.commit()
     except Exception as exc:
@@ -102,16 +106,19 @@ def update_ingredient(ing_id):
 
 
 @inventory_bp.patch("/<int:ing_id>/adjust")
+@token_required
 def adjust_ingredient(ing_id):
     data = request.get_json() or {}
     conn = get_db_connection()
     with conn.cursor() as cursor:
         adjust_ingredient_stock(cursor, ing_id, float(data.get("delta", 0)))
+        sync_all_product_stocks(cursor)
     conn.commit()
-    return jsonify({"message": "Inventario ajustado"})
+    return jsonify({"message": "Inventario ajustado y stock sincronizado"})
 
 
 @inventory_bp.delete("/<int:ing_id>")
+@token_required
 def delete_ingredient(ing_id):
     conn = get_db_connection()
     with conn.cursor() as cursor:
@@ -120,5 +127,6 @@ def delete_ingredient(ing_id):
         except Exception:
             pass
         cursor.execute("DELETE FROM ingredientes WHERE id = %s", (ing_id,))
+        sync_all_product_stocks(cursor)
     conn.commit()
     return jsonify({"message": "Ingrediente eliminado"})

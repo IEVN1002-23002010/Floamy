@@ -19,7 +19,7 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
       <app-page-title
         eyebrow="ARQUEO DE TURNO"
         title="Cierre de caja"
-        subtitle="Compara el efectivo físico contra las ventas cobradas en el sistema." />
+        subtitle="Compara el efectivo físico contra las ventas cobradas y compras pagadas en efectivo." />
 
       <div class="flex items-center gap-2">
         <label class="text-xs font-semibold text-[#0b234a]">Fecha:</label>
@@ -39,12 +39,14 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
         <span class="bg-emerald-100 text-emerald-800 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
-          Efectivo en caja
+          Ventas en efectivo
         </span>
         <strong class="block text-2xl font-bold text-[#011640] mt-3">
           {{ summary()?.ventas_efectivo || 0 | currencyMxn }}
         </strong>
-        <small class="text-xs text-slate-500">Cobros físicos del día</small>
+        <small class="text-xs text-slate-500">
+          Compras efec.: −{{ summary()?.egresos_efectivo || 0 | currencyMxn }}
+        </small>
       </div>
 
       <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm">
@@ -112,7 +114,6 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
             </label>
             <input type="number"
                    step="0.5"
-                   min="0"
                    [ngModel]="efectivoContado()"
                    (ngModelChange)="efectivoContado.set(+$event || 0)"
                    class="bg-slate-50 border border-slate-300 text-[#011640] text-sm font-bold rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5" />
@@ -159,7 +160,11 @@ import { CurrencyMxnPipe } from '../../../shared/pipes/currency-mxn.pipe';
             </div>
             <div class="flex justify-between">
               <span class="text-slate-600">+ Ventas en efectivo:</span>
-              <strong class="text-[#011640]">{{ summary()?.ventas_efectivo || 0 | currencyMxn }}</strong>
+              <strong class="text-emerald-700">+{{ summary()?.ventas_efectivo || 0 | currencyMxn }}</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-600">− Compras pagadas en efectivo:</span>
+              <strong class="text-rose-700">−{{ summary()?.egresos_efectivo || 0 | currencyMxn }}</strong>
             </div>
             <div class="pt-2 border-t border-slate-300/70 flex justify-between text-sm">
               <span class="font-bold text-[#011640]">Debe haber en caja:</span>
@@ -283,7 +288,8 @@ export class CashRegisterComponent implements OnInit {
 
   efectivoEsperado = computed(() => {
     const ventasEfec = Number(this.summary()?.ventas_efectivo || 0);
-    return Math.round((Number(this.fondoInicial() || 0) + ventasEfec) * 100) / 100;
+    const egresosEfec = Number(this.summary()?.egresos_efectivo || 0);
+    return Math.round((Number(this.fondoInicial() || 0) + ventasEfec - egresosEfec) * 100) / 100;
   });
 
   diferencia = computed(() => {
@@ -301,7 +307,11 @@ export class CashRegisterComponent implements OnInit {
     this.cashService.getSummary(this.selectedDate).subscribe((res) => {
       this.summary.set(res);
       if (autoFillCounted) {
-        this.efectivoContado.set(this.fondoInicial() + Number(res.ventas_efectivo || 0));
+        const esperado =
+          Number(this.fondoInicial() || 0) +
+          Number(res.ventas_efectivo || 0) -
+          Number(res.egresos_efectivo || 0);
+        this.efectivoContado.set(Math.round(esperado * 100) / 100);
       }
     });
   }

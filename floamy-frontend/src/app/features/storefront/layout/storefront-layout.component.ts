@@ -33,6 +33,14 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
             </span>
           </button>
 
+          <a *ngIf="auth.currentUser()"
+             routerLink="/pedido"
+             fragment="historial-pedidos"
+             style="text-decoration:none;"
+             class="hidden sm:inline-flex px-3.5 py-2 text-xs font-bold text-[#011640] bg-white border border-slate-200 rounded-full hover:bg-[#dff0f7] transition">
+            Mis pedidos
+          </a>
+
           <button *ngIf="!auth.currentUser()"
                   type="button"
                   (click)="authModalOpen.set(true)"
@@ -63,6 +71,7 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" style="text-decoration:none;">Inicio</a>
         <a routerLink="/sabores" routerLinkActive="active" style="text-decoration:none;">Sabores</a>
         <a routerLink="/pedido" routerLinkActive="active" style="text-decoration:none;">Pedido ({{ cartCount() }})</a>
+        <a *ngIf="auth.currentUser()" routerLink="/pedido" fragment="historial-pedidos" style="text-decoration:none;">Historial</a>
       </nav>
 
       <!-- Drawer del carrito -->
@@ -147,7 +156,6 @@ import { CustomerAuthModalComponent } from '../../auth/customer-auth-modal/custo
                  class="p-3.5 rounded-2xl bg-white/92 backdrop-blur-md shadow-xs space-y-2.5">
               <div class="flex items-center justify-between gap-2.5">
                 <div class="flex items-center gap-3 min-w-0">
-                  <!-- Miniatura del sabor de helado -->
                   <div class="scoop shrink-0 !w-11 !h-11 rounded-2xl overflow-hidden bg-[#DFF0F7] ring-2 ring-[#F7F3E9] shadow-xs flex items-center justify-center"
                        [class]="getItemTone(item)">
                     <img *ngIf="getItemImage(item)"

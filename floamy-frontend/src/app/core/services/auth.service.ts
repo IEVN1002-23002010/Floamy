@@ -15,35 +15,37 @@ export interface AuthUser {
 
 const DEFAULT_ROLE_PERMISSIONS: Record<string, Record<string, boolean>> = {
   administrador: {
-    dashboard: true, pos: true, orders: true, cash_register: true,
-    products: true, catalog_options: true, inventory: true, movements: true,
-    suppliers: true, clients: true, users: true, roles: true, reviews: true
+    dashboard: true, marketing: true, pos: true, orders: true, cash_register: true,
+    products: true, catalog_options: true, inventory: true, purchases: true,
+    movements: true, suppliers: true, clients: true, users: true, roles: true, reviews: true
   },
   empleado: {
-    dashboard: false, pos: true, orders: true, cash_register: true,
-    products: true, catalog_options: false, inventory: true, movements: false,
-    suppliers: false, clients: true, users: false, roles: false, reviews: true
+    dashboard: false, marketing: false, pos: true, orders: true, cash_register: true,
+    products: true, catalog_options: false, inventory: true, purchases: false,
+    movements: false, suppliers: false, clients: true, users: false, roles: false, reviews: true
   },
   cocina: {
-    dashboard: false, pos: false, orders: true, cash_register: false,
-    products: true, catalog_options: false, inventory: true, movements: true,
-    suppliers: false, clients: false, users: false, roles: false, reviews: false
+    dashboard: false, marketing: false, pos: false, orders: true, cash_register: false,
+    products: true, catalog_options: false, inventory: true, purchases: false,
+    movements: true, suppliers: false, clients: false, users: false, roles: false, reviews: false
   },
   cliente: {
-    dashboard: false, pos: false, orders: true, cash_register: false,
-    products: true, catalog_options: false, inventory: false, movements: false,
-    suppliers: false, clients: false, users: false, roles: false, reviews: true
+    dashboard: false, marketing: false, pos: false, orders: true, cash_register: false,
+    products: true, catalog_options: false, inventory: false, purchases: false,
+    movements: false, suppliers: false, clients: false, users: false, roles: false, reviews: true
   }
 };
 
 const ADMIN_ROUTE_ORDER: Array<{ key: string; route: string }> = [
   { key: 'dashboard', route: '/admin/resumen' },
+  { key: 'marketing', route: '/admin/marketing' },
   { key: 'pos', route: '/admin/pos' },
   { key: 'orders', route: '/admin/pedidos' },
   { key: 'cash_register', route: '/admin/corte-caja' },
   { key: 'products', route: '/admin/productos' },
   { key: 'catalog_options', route: '/admin/tamanos' },
   { key: 'inventory', route: '/admin/inventario' },
+  { key: 'purchases', route: '/admin/compras' },
   { key: 'movements', route: '/admin/movimientos' },
   { key: 'suppliers', route: '/admin/proveedores' },
   { key: 'clients', route: '/admin/clientes' },
@@ -59,10 +61,32 @@ export class AuthService {
 
   currentUser = signal<AuthUser | null>(this.readStoredUser());
 
+  private isJwtValid(token: string | null): boolean {
+    if (!token) return false;
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+    try {
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(base64));
+      if (payload.exp && Date.now() >= payload.exp * 1000) {
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   private readStoredUser(): AuthUser | null {
     try {
+      const token = localStorage.getItem('floamy_token');
       const raw = localStorage.getItem('floamy_user');
-      return raw ? JSON.parse(raw) : null;
+      if (!raw || !this.isJwtValid(token)) {
+        localStorage.removeItem('floamy_token');
+        localStorage.removeItem('floamy_user');
+        return null;
+      }
+      return JSON.parse(raw);
     } catch {
       return null;
     }
@@ -114,7 +138,15 @@ export class AuthService {
     );
   }
 
-  registerClient(payload: { nombre: string; correo: string; telefono?: string; password: string }) {
+  registerClient(payload: {
+    nombre: string;
+    correo: string;
+    telefono?: string;
+    password: string;
+    edad?: number | null;
+    genero?: string;
+    zona?: string;
+  }) {
     return this.http.post<AuthUser>(`${this.baseUrl}/register-client`, payload).pipe(
       tap((user) => this.persistSession(user))
     );

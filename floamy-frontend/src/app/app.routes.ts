@@ -9,6 +9,7 @@ import { CheckoutComponent } from './features/storefront/checkout/checkout.compo
 import { AdminLoginComponent } from './features/auth/admin-login/admin-login.component';
 import { AdminLayoutComponent } from './features/admin/layout/admin-layout.component';
 import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
+import { MarketingComponent } from './features/admin/marketing/marketing.component';
 import { PosComponent } from './features/admin/pos/pos.component';
 import { OrdersComponent } from './features/admin/orders/orders.component';
 import { CashRegisterComponent } from './features/admin/cash-register/cash-register.component';
@@ -59,6 +60,7 @@ export const routes: Routes = [
     children: [
       { path: '', canActivate: [adminHomeRedirectGuard], children: [] },
       { path: 'resumen', component: DashboardComponent, canActivate: [permissionGuard('dashboard')] },
+      { path: 'marketing', component: MarketingComponent, canActivate: [permissionGuard('marketing')] },
       { path: 'pos', component: PosComponent, canActivate: [permissionGuard('pos')] },
       { path: 'pedidos', component: OrdersComponent, canActivate: [permissionGuard('orders')] },
       { path: 'corte-caja', component: CashRegisterComponent, canActivate: [permissionGuard('cash_register')] },
@@ -66,7 +68,7 @@ export const routes: Routes = [
       { path: 'tamanos', component: PresentationsComponent, canActivate: [permissionGuard('catalog_options')] },
       { path: 'toppings', component: ToppingsComponent, canActivate: [permissionGuard('catalog_options')] },
       { path: 'inventario', component: InventoryComponent, canActivate: [permissionGuard('inventory')] },
-      { path: 'compras', component: PurchaseOrdersComponent, canActivate: [permissionGuard('suppliers')] },
+      { path: 'compras', component: PurchaseOrdersComponent, canActivate: [permissionGuard('purchases')] },
       { path: 'movimientos', component: MovementsComponent, canActivate: [permissionGuard('movements')] },
       { path: 'proveedores', component: SuppliersComponent, canActivate: [permissionGuard('suppliers')] },
       { path: 'clientes', component: ClientsComponent, canActivate: [permissionGuard('clients')] },

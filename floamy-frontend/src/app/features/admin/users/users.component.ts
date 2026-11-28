@@ -39,11 +39,18 @@ import { ModalComponent } from '../../../shared/components/modal/modal.component
               </span>
             </td>
             <td class="px-6 py-4 text-right">
-              <button type="button"
-                      (click)="toggle(u.id)"
-                      class="px-3.5 py-1.5 text-xs font-semibold text-[#011640] bg-white border border-slate-300 rounded-full hover:bg-[#dff0f7] hover:border-[#011640] focus:ring-2 focus:ring-[#6da0bf] transition">
-                {{ getActionText(u) }}
-              </button>
+              <div class="inline-flex items-center justify-end gap-2">
+                <button type="button"
+                        (click)="openEdit(u)"
+                        class="px-3.5 py-1.5 text-xs font-semibold text-white bg-[#011640] rounded-full hover:bg-[#0b234a] focus:ring-2 focus:ring-[#6da0bf] transition">
+                  Editar
+                </button>
+                <button type="button"
+                        (click)="toggle(u.id)"
+                        class="px-3.5 py-1.5 text-xs font-semibold text-[#011640] bg-white border border-slate-300 rounded-full hover:bg-[#dff0f7] hover:border-[#011640] focus:ring-2 focus:ring-[#6da0bf] transition">
+                  {{ getActionText(u) }}
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -81,13 +88,55 @@ import { ModalComponent } from '../../../shared/components/modal/modal.component
         </div>
       </form>
     </app-modal>
+
+    <app-modal *ngIf="editing()" title="Editar usuario" (close)="editing.set(null)">
+      <form class="space-y-4" (ngSubmit)="update()">
+        <div>
+          <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">Nombre completo</label>
+          <input required name="editNombre" [(ngModel)]="editForm.nombre"
+                 class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5" />
+        </div>
+        <div>
+          <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">Correo</label>
+          <input required type="email" name="editCorreo" [(ngModel)]="editForm.correo"
+                 class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5" />
+        </div>
+        <div>
+          <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">Rol</label>
+          <select name="editRol" [(ngModel)]="editForm.rol"
+                  class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5">
+            <option value="Administrador">Administrador</option>
+            <option value="Empleado">Empleado</option>
+            <option value="Cocina">Cocina</option>
+            <option value="Cliente">Cliente</option>
+          </select>
+        </div>
+        <div>
+          <label class="block mb-1.5 text-xs font-semibold text-[#0b234a]">Nueva contraseña (opcional)</label>
+          <input type="password" name="editPassword" [(ngModel)]="editForm.password"
+                 placeholder="Dejar en blanco para conservar la actual"
+                 class="bg-slate-50 border border-slate-300 text-[#011640] text-sm rounded-xl focus:ring-[#6da0bf] focus:border-[#6da0bf] block w-full p-2.5" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" (click)="editing.set(null)" class="px-4 py-2.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-100">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2.5 text-xs font-semibold text-white bg-[#011640] rounded-xl hover:bg-[#0b234a] focus:ring-4 focus:ring-[#6da0bf]/40">
+            Guardar cambios ✓
+          </button>
+        </div>
+      </form>
+    </app-modal>
   `
 })
 export class UsersComponent implements OnInit {
   private usersService = inject(UsersService);
   users = signal<any[]>([]);
   adding = signal(false);
+  editing = signal<any | null>(null);
+
   form = { name: '', email: '', role: 'Empleado' };
+  editForm = { nombre: '', correo: '', rol: 'Empleado', password: '' };
 
   ngOnInit() { this.load(); }
   load() { this.usersService.getUsers().subscribe((list) => this.users.set(list)); }
@@ -101,6 +150,16 @@ export class UsersComponent implements OnInit {
     return this.isInactive(u) ? 'Activar' : 'Desactivar';
   }
 
+  openEdit(u: any) {
+    this.editForm = {
+      nombre: u.nombre ?? '',
+      correo: u.correo ?? '',
+      rol: u.rol ?? 'Empleado',
+      password: ''
+    };
+    this.editing.set(u);
+  }
+
   toggle(id: number) {
     this.usersService.toggleUser(id).subscribe(() => this.load());
   }
@@ -108,6 +167,16 @@ export class UsersComponent implements OnInit {
   save() {
     this.usersService.createUser(this.form).subscribe(() => {
       this.adding.set(false);
+      this.form = { name: '', email: '', role: 'Empleado' };
+      this.load();
+    });
+  }
+
+  update() {
+    const current = this.editing();
+    if (!current) return;
+    this.usersService.updateUser(current.id, this.editForm).subscribe(() => {
+      this.editing.set(null);
       this.load();
     });
   }

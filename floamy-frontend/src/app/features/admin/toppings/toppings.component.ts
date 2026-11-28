@@ -153,7 +153,7 @@ export class ToppingsComponent implements OnInit {
   form: any = {
     nombre: '',
     precio: 10,
-    stock: 25,
+    stock: 0,
     proveedor_id: null,
     ingrediente_id: null,
     cantidad_por_porcion: 0.04,
@@ -179,7 +179,7 @@ export class ToppingsComponent implements OnInit {
     this.form = {
       nombre: '',
       precio: 10,
-      stock: 25,
+      stock: 0,
       proveedor_id: null,
       ingrediente_id: null,
       cantidad_por_porcion: 0.04,

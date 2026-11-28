@@ -42,6 +42,10 @@ export class UsersService {
     return this.http.post(`${this.usersUrl}/`, data);
   }
 
+  updateUser(id: number, data: { nombre: string; correo: string; rol: string; password?: string }) {
+    return this.http.put(`${this.usersUrl}/${id}`, data);
+  }
+
   toggleUser(id: number) {
     return this.http.patch(`${this.usersUrl}/${id}/toggle`, {});
   }

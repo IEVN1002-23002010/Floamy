@@ -12,6 +12,23 @@ export class DashboardService {
     return this.http.get<any>(`${this.dashUrl}/summary`);
   }
 
+  updateSalesGoal(objetivo: number, periodo = 'Noviembre 2026') {
+    return this.http.put(`${this.dashUrl}/goal`, { objetivo, periodo });
+  }
+
+  createAdCampaign(data: {
+    campana: string;
+    canal: string;
+    monto_invertido: number;
+    ingresos_generados: number;
+  }) {
+    return this.http.post(`${this.dashUrl}/ads`, data);
+  }
+
+  deleteAdCampaign(id: number) {
+    return this.http.delete(`${this.dashUrl}/ads/${id}`);
+  }
+
   getReviews() {
     return this.http.get<any[]>(`${this.revUrl}/`);
   }
